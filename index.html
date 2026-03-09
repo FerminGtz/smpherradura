@@ -82,8 +82,7 @@ fetch(sheetURL)
 .then(res=>res.text())
 .then(data=>{
 
-const rows=data.trim().split("
-");
+const rows=data.trim().split("\n");
 const headers=rows[0].split(",");
 
 const idxWinner=headers.indexOf("NombreRes");
