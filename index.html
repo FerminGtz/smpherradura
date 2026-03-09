@@ -68,6 +68,32 @@ padding:15px;
 margin-top:40px
 }
 
+form{
+max-width:500px;
+margin-top:20px;
+}
+
+form label{
+display:block;
+margin-top:15px;
+font-weight:bold;
+}
+
+form input,
+form textarea{
+width:100%;
+padding:10px;
+margin-top:5px;
+border-radius:6px;
+border:1px solid #ccc;
+font-size:14px;
+}
+
+form textarea{
+min-height:120px;
+resize:vertical;
+}
+  
 /* BOTÓN RESULTADOS */
 
 .resultBtn{
@@ -175,25 +201,20 @@ background:#0b3d2e;
 <form action="https://formsubmit.co/smpherradura@gmail.com" method="POST">
 
 <input type="hidden" name="_subject" value="Nuevo mensaje - Senior Match Play">
-
 <input type="hidden" name="_captcha" value="false">
 
 <label>Nombre</label>
-
-<input type="text" name="name" required>
+<input type="text" name="name" placeholder="Tu nombre" required>
 
 <label>Email</label>
-
-<input type="email" name="email" required>
+<input type="email" name="email" placeholder="Tu correo electrónico" required>
 
 <label>Mensaje</label>
+<textarea name="message" rows="6" placeholder="Escribe tu mensaje aquí..." required></textarea>
 
-<textarea name="message" rows="5" required></textarea>
-
-<button type="submit">Enviar Mensaje</button>
+<button type="submit" class="resultBtn">Enviar Mensaje</button>
 
 </form>
-
 
 <hr style="margin:30px 0">
 
