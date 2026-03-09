@@ -272,25 +272,23 @@ playersContainer.innerHTML=html;
 
 // -------- NOTICIAS DE GOLF --------
 
-const rss="https://news.google.com/rss/search?q=golf+pga+tour&hl=es-419&gl=MX&ceid=MX:es";
+const rssURL = "https://golf.com/feed/";
 
-fetch("https://api.allorigins.hexlet.app/get?url="+encodeURIComponent(rss))
-.then(res=>res.json())
-.then(data=>{
+fetch(rssURL)
+.then(response => response.text())
+.then(str => {
 
-const xmlText=data.contents;
+const parser = new DOMParser();
+const xml = parser.parseFromString(str, "text/xml");
 
-const parser=new DOMParser();
-const xml=parser.parseFromString(xmlText,"text/xml");
+const items = xml.querySelectorAll("item");
 
-const items=xml.querySelectorAll("item");
+const container = document.getElementById("newsList");
 
-const container=document.getElementById("newsList");
+container.innerHTML = "";
 
-container.innerHTML="";
-
-if(items.length===0){
-container.innerHTML="<p>No se encontraron noticias recientes.</p>";
+if(items.length === 0){
+container.innerHTML = "<p>No se encontraron noticias recientes.</p>";
 return;
 }
 
@@ -298,15 +296,15 @@ items.forEach((item,i)=>{
 
 if(i>=8) return;
 
-const title=item.querySelector("title")?.textContent || "";
-const link=item.querySelector("link")?.textContent || "";
-const date=item.querySelector("pubDate")?.textContent || "";
+const title = item.querySelector("title")?.textContent || "";
+const link = item.querySelector("link")?.textContent || "";
+const date = item.querySelector("pubDate")?.textContent || "";
 
-const formattedDate=date
+const formattedDate = date
 ? new Date(date).toLocaleDateString("es-MX")
 : "";
 
-container.innerHTML+=`
+container.innerHTML += `
 
 <div style="margin-bottom:20px">
 
@@ -323,9 +321,10 @@ ${title}
 });
 
 })
-.catch(err=>{
-console.log("Error cargando noticias:",err);
-document.getElementById("newsList").innerHTML="<p>No se pudieron cargar noticias.</p>";
+.catch(error=>{
+console.log("Error noticias:",error);
+document.getElementById("newsList").innerHTML =
+"<p>No se pudieron cargar noticias.</p>";
 });
  
  
