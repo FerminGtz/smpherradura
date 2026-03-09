@@ -271,7 +271,7 @@ playersContainer.innerHTML=html;
 // -------- NOTICIAS DE GOLF --------
 
 
-const rss="https://news.google.com/rss/search?q=PGA+Tour+OR+LIV+Golf+OR+Masters+Golf+OR+US+Open+Golf&hl=es-419&gl=MX&ceid=MX:es";
+const rss="https://news.google.com/rss/search?q=PGA%20Tour%20%7C%20LIV%20Golf%20%7C%20Masters%20Golf%20%7C%20US%20Open%20Golf&hl=es-419&gl=MX&ceid=MX:es";
  
 fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(rss))
 .then(res=>res.text())
