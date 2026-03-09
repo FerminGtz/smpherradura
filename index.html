@@ -370,199 +370,61 @@ container.innerHTML+=html;
 
 /* RESULTADOS */
 
+/* RESULTADOS */
+
 fetch(sheetURL)
-
 .then(res=>res.text())
-
 .then(data=>{
 
 const rows=data.trim().split("\n");
 
+if(rows.length<2) return;
+
 const headers=rows[0].split(",");
 
+const idxFecha=headers.indexOf("Fecha");
 const idxGrupo=headers.indexOf("GrupoRes");
-
 const idxWinner=headers.indexOf("NombreRes");
-
 const idxLoser=headers.indexOf("Perdedor");
-
 const idxDiff=headers.indexOf("Diferencia");
 
 const container=document.getElementById("resultsContainer");
 
-
-let html=`<table>
-
+let html=`
+<table>
 <tr>
-
 <th>Fecha</th>
-
 <th>Grupo</th>
-
 <th>Ganador</th>
-
 <th>Perdedor</th>
-
 <th>Diferencia</th>
-
-</tr>`;
-
+</tr>
+`;
 
 rows.slice(1).forEach(row=>{
 
 const cols=row.split(",");
 
-html+=`<tr>
-
-<td>${cols[idxFecha]}</td>
-
-<td>${cols[idxGrupo]}</td>
-
-<td>${cols[idxWinner]}</td>
-
-<td>${cols[idxLoser]}</td>
-
-<td>${cols[idxDiff]}</td>
-
-</tr>`;
+html+=`
+<tr>
+<td>${cols[idxFecha]||""}</td>
+<td>${cols[idxGrupo]||""}</td>
+<td>${cols[idxWinner]||""}</td>
+<td>${cols[idxLoser]||""}</td>
+<td>${cols[idxDiff]||""}</td>
+</tr>
+`;
 
 });
-
 
 html+="</table>";
 
 container.innerHTML=html;
 
+})
+.catch(err=>{
+console.log("Error resultados:",err);
 });
-
-
-
-/* JUGADORES */
-
-fetch(playersSheetURL)
-
-.then(res=>res.text())
-
-.then(data=>{
-
-const rows=data.trim().split("\n");
-
-const headers=rows[0].split(",");
-
-
-const idxNombre=headers.findIndex(h=>h.toLowerCase().includes("nombre")||h.toLowerCase().includes("jugador"));
-
-const idxGrupo=headers.findIndex(h=>h.toLowerCase().includes("grupo"));
-
-const idxGHIN=headers.findIndex(h=>h.toLowerCase().includes("ghin"));
-
-const idxEmail=headers.findIndex(h=>h.toLowerCase().includes("email")||h.toLowerCase().includes("correo"));
-
-const idxTel=headers.findIndex(h=>h.toLowerCase().includes("tel")||h.toLowerCase().includes("telefono"));
-
-
-let players=[];
-
-
-rows.slice(1).forEach(row=>{
-
-const cols=row.split(",");
-
-players.push({
-
-grupo:cols[idxGrupo]||"",
-
-nombre:cols[idxNombre]||"",
-
-ghin:cols[idxGHIN]||"",
-
-email:cols[idxEmail]||"",
-
-telefono:cols[idxTel]||""
-
-});
-
-});
-
-
-players.sort((a,b)=>{
-
-if(a.grupo!==b.grupo) return a.grupo.localeCompare(b.grupo);
-
-return a.nombre.localeCompare(b.nombre);
-
-});
-
-
-const playersContainer=document.getElementById("playersContainer");
-
-
-let html=`<table>
-
-<tr>
-
-<th>Grupo</th>
-
-<th>Jugador</th>
-
-<th>GHIN</th>
-
-<th>Email</th>
-
-<th>Teléfono</th>
-
-</tr>`;
-
-
-let grupoAnterior="";
-
-
-players.forEach(p=>{
-
-
-if(grupoAnterior!=="" && p.grupo!==grupoAnterior){
-
-html+=`<tr><td colspan="5" style="height:15px"></td></tr>`;
-
-}
-
-
-html+=`<tr>
-
-<td>${p.grupo}</td>
-
-<td>${p.nombre}</td>
-
-<td>${p.ghin}</td>
-
-<td>${p.email}</td>
-
-<td>${p.telefono}</td>
-
-</tr>`;
-
-
-grupoAnterior=p.grupo;
-
-});
-
-
-html+="</table>";
-
-playersContainer.innerHTML=html;
-
-});
-
-
-function showTab(tabId){
-
-const tabs=document.querySelectorAll('.tab');
-
-tabs.forEach(t=>t.style.display='none');
-
-document.getElementById(tabId).style.display='block';
-
-}
 
 </script>
 
