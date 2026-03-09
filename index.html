@@ -270,61 +270,46 @@ playersContainer.innerHTML=html;
 
 // -------- NOTICIAS DE GOLF --------
 
+
 // -------- NOTICIAS DE GOLF --------
 
-const rssFeed="https://www.golfdigest.com/feed";
+const newsRSS="https://news.google.com/rss/search?q=golf+pga+liv+ancer&hl=es-419&gl=MX&ceid=MX:es";
 
-fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssFeed)}`)
-.then(response=>response.json())
+fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(newsRSS)}`)
+.then(res=>res.json())
 .then(data=>{
 
+const parser=new DOMParser();
+const xml=parser.parseFromString(data.contents,"text/xml");
+
+const items=xml.querySelectorAll("item");
+
 const newsList=document.getElementById("newsList");
+newsList.innerHTML="";
 
-if(!data.items){
-newsList.innerHTML="<p>No se pudieron cargar noticias.</p>";
-return;
-}
+items.forEach((item,i)=>{
 
-data.items.slice(0,8).forEach(item=>{
+if(i>=8) return;
 
-const titulo=item.title;
-const link=item.link;
-const fecha=new Date(item.pubDate).toLocaleDateString("es-MX");
+const title=item.querySelector("title").textContent;
+const link=item.querySelector("link").textContent;
+const date=new Date(item.querySelector("pubDate").textContent)
+.toLocaleDateString("es-MX");
 
-const descripcion=item.description
-.replace(/<[^>]*>?/gm,'')
-.substring(0,120)+"...";
+const li=document.createElement("li");
 
-const imagen=item.thumbnail || "https://upload.wikimedia.org/wikipedia/commons/5/5b/Golf_ball_2.jpg";
-
-const card=document.createElement("div");
-card.className="newsCard";
-
-card.innerHTML=`
-
-<img src="${imagen}">
-
-<div class="newsContent">
-
-<h3>
-<a href="${link}" target="_blank">${titulo}</a>
-</h3>
-
-<div class="newsDate">${fecha}</div>
-
-<p>${descripcion}</p>
-
-</div>
-
+li.innerHTML=`
+<strong>${date}</strong><br>
+<a href="${link}" target="_blank">${title}</a>
 `;
 
-newsList.appendChild(card);
+newsList.appendChild(li);
 
 });
 
 })
-.catch(error=>{
-console.log("Error cargando noticias:",error);
+.catch(err=>{
+console.log("Error cargando noticias",err);
 });
  
 
