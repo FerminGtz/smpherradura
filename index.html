@@ -271,21 +271,20 @@ playersContainer.innerHTML=html;
 // -------- NOTICIAS DE GOLF --------
 
 
-// -------- NOTICIAS DE GOLF --------
+const rss="https://news.google.com/rss/search?q=golf+pga+liv+ancer&hl=es-419&gl=MX&ceid=MX:es";
 
-const newsRSS="https://news.google.com/rss/search?q=golf+pga+liv+ancer&hl=es-419&gl=MX&ceid=MX:es";
-
-fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(newsRSS)}`)
-.then(res=>res.json())
-.then(data=>{
+fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(rss))
+.then(res=>res.text())
+.then(str=>{
 
 const parser=new DOMParser();
-const xml=parser.parseFromString(data.contents,"text/xml");
+const xml=parser.parseFromString(str,"text/xml");
 
 const items=xml.querySelectorAll("item");
 
-const newsList=document.getElementById("newsList");
-newsList.innerHTML="";
+const container=document.getElementById("newsList");
+
+container.innerHTML="";
 
 items.forEach((item,i)=>{
 
@@ -296,24 +295,27 @@ const link=item.querySelector("link").textContent;
 const date=new Date(item.querySelector("pubDate").textContent)
 .toLocaleDateString("es-MX");
 
-const li=document.createElement("li");
+container.innerHTML+=`
 
-li.innerHTML=`
-<strong>${date}</strong><br>
-<a href="${link}" target="_blank">${title}</a>
+<div style="margin-bottom:20px">
+
+<div style="font-size:13px;color:#777">${date}</div>
+
+<a href="${link}" target="_blank" style="font-weight:bold">
+${title}
+</a>
+
+</div>
+
 `;
-
-newsList.appendChild(li);
 
 });
 
 })
 .catch(err=>{
-console.log("Error cargando noticias",err);
+console.log("Error noticias:",err);
 });
  
-
-
  
 // -------- TAB NAVIGATION -------------------------
  
