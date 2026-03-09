@@ -268,31 +268,54 @@ playersContainer.innerHTML=html;
 });
  
 
-// noticias golf
-
+// -------- NOTICIAS DE GOLF --------
 
 const rss="https://www.golfdigest.com/feed";
 
 fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rss}`)
 .then(res=>res.json())
 .then(data=>{
-const list=document.getElementById("newsList");
 
-const filtered=data.items.filter(n=>
- n.title.toLowerCase().includes("pga") ||
- n.title.toLowerCase().includes("liv") ||
- n.title.toLowerCase().includes("ancer") ||
- n.title.toLowerCase().includes("ochoa")
-);
+const newsList=document.getElementById("newsList");
 
-filtered.slice(0,8).forEach(item=>{
-const li=document.createElement("li");
-li.innerHTML=`<a href="${item.link}" target="_blank">${item.title}</a>`;
-list.appendChild(li);
+data.items.slice(0,8).forEach(item=>{
+
+const titulo=item.title;
+const descripcion=item.description.replace(/<[^>]*>?/gm,'').substring(0,120)+"...";
+const fecha=new Date(item.pubDate).toLocaleDateString("es-MX");
+
+traducir(titulo).then(tituloES=>{
+
+const card=document.createElement("div");
+card.className="newsCard";
+
+card.innerHTML=`
+
+<img src="${item.thumbnail || 'https://upload.wikimedia.org/wikipedia/commons/5/5b/Golf_ball_2.jpg'}">
+
+<div class="newsContent">
+
+<h3>
+<a href="${item.link}" target="_blank">
+${tituloES}
+</a>
+</h3>
+
+<div class="newsDate">${fecha}</div>
+
+<p>${descripcion}</p>
+
+</div>
+
+`;
+
+newsList.appendChild(card);
+
 });
 
 });
 
+});
 
 // -------- TAB NAVIGATION --------
 function showTab(tabId){
