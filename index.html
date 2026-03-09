@@ -5,9 +5,9 @@ const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk
 const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=762416889&single=true&output=csv";
 
 
-/* =====================================
+/* =========================
 LEADERBOARD
-===================================== */
+========================= */
 
 fetch(sheetURL)
 .then(res=>res.text())
@@ -22,6 +22,8 @@ const idxWinDiff=headers.indexOf("Diferencia");
 const idxLoseDiff=headers.indexOf("Dif Perdedor");
 const idxGrupo=headers.indexOf("GrupoRes");
 
+if(idxWinner<0 || idxLoser<0 || idxGrupo<0) return;
+
 let players={};
 
 rows.slice(1).forEach(row=>{
@@ -30,6 +32,7 @@ const cols=row.split(",");
 
 const winner=cols[idxWinner];
 const loser=cols[idxLoser];
+
 const winDiff=Number(cols[idxWinDiff]||0);
 const loseDiff=Number(cols[idxLoseDiff]||0);
 
@@ -64,7 +67,6 @@ const loser=cols[idxLoser];
 const grupo=cols[idxGrupo];
 
 if(winner && players[winner]) players[winner].grupo=grupo;
-
 if(loser && players[loser] && !players[loser].grupo) players[loser].grupo=grupo;
 
 });
@@ -119,12 +121,15 @@ container.innerHTML+=html;
 
 });
 
-});
+})
 
 
-/* =====================================
+.catch(err=>console.log("Leaderboard error",err));
+
+
+/* =========================
 RESULTADOS
-===================================== */
+========================= */
 
 fetch(sheetURL)
 .then(res=>res.text())
@@ -150,21 +155,17 @@ const cols=row.split(",");
 
 results.push({
 
-fecha:cols[idxFecha]||"",
-grupo:cols[idxGrupo]||"",
-ganador:cols[idxWinner]||"",
-perdedor:cols[idxLoser]||"",
-diff:cols[idxDiff]||""
+fecha: idxFecha>=0 ? cols[idxFecha] : "",
+grupo: idxGrupo>=0 ? cols[idxGrupo] : "",
+ganador: idxWinner>=0 ? cols[idxWinner] : "",
+perdedor: idxLoser>=0 ? cols[idxLoser] : "",
+diff: idxDiff>=0 ? cols[idxDiff] : ""
 
 });
 
 });
-
-
-/* ordenar resultados por fecha más reciente */
 
 results.sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
-
 
 const container=document.getElementById("resultsContainer");
 
@@ -198,14 +199,12 @@ html+="</table>";
 container.innerHTML=html;
 
 })
-.catch(err=>{
-console.log("Error resultados:",err);
-});
+.catch(err=>console.log("Resultados error",err));
 
 
-/* =====================================
+/* =========================
 JUGADORES
-===================================== */
+========================= */
 
 fetch(playersSheetURL)
 .then(res=>res.text())
@@ -214,28 +213,11 @@ fetch(playersSheetURL)
 const rows=data.trim().split("\n");
 const headers=rows[0].split(",");
 
-const idxNombre=headers.findIndex(h =>
-h.toLowerCase().includes("nombre") ||
-h.toLowerCase().includes("jugador")
-);
-
-const idxGrupo=headers.findIndex(h =>
-h.toLowerCase().includes("grupo")
-);
-
-const idxGHIN=headers.findIndex(h =>
-h.toLowerCase().includes("ghin")
-);
-
-const idxEmail=headers.findIndex(h =>
-h.toLowerCase().includes("email") ||
-h.toLowerCase().includes("correo")
-);
-
-const idxTel=headers.findIndex(h =>
-h.toLowerCase().includes("tel") ||
-h.toLowerCase().includes("telefono")
-);
+const idxNombre=headers.findIndex(h=>h.toLowerCase().includes("nombre")||h.toLowerCase().includes("jugador"));
+const idxGrupo=headers.findIndex(h=>h.toLowerCase().includes("grupo"));
+const idxGHIN=headers.findIndex(h=>h.toLowerCase().includes("ghin"));
+const idxEmail=headers.findIndex(h=>h.toLowerCase().includes("email")||h.toLowerCase().includes("correo"));
+const idxTel=headers.findIndex(h=>h.toLowerCase().includes("tel"));
 
 let players=[];
 
@@ -244,28 +226,22 @@ rows.slice(1).forEach(row=>{
 const cols=row.split(",");
 
 players.push({
-
 grupo:cols[idxGrupo]||"",
 nombre:cols[idxNombre]||"",
 ghin:cols[idxGHIN]||"",
 email:cols[idxEmail]||"",
 telefono:cols[idxTel]||""
-
 });
 
 });
-
 
 players.sort((a,b)=>{
 
-if(a.grupo!==b.grupo){
-return a.grupo.localeCompare(b.grupo);
-}
+if(a.grupo!==b.grupo) return a.grupo.localeCompare(b.grupo);
 
 return a.nombre.localeCompare(b.nombre);
 
 });
-
 
 const playersContainer=document.getElementById("playersContainer");
 
@@ -286,11 +262,7 @@ players.forEach(p=>{
 
 if(grupoAnterior!=="" && p.grupo!==grupoAnterior){
 
-html+=`
-<tr>
-<td colspan="5" style="height:15px"></td>
-</tr>
-`;
+html+=`<tr><td colspan="5" style="height:15px"></td></tr>`;
 
 }
 
@@ -312,12 +284,13 @@ html+="</table>";
 
 playersContainer.innerHTML=html;
 
-});
+})
+.catch(err=>console.log("Jugadores error",err));
 
 
-/* =====================================
-NAVEGACIÓN DE PESTAÑAS
-===================================== */
+/* =========================
+NAVEGACIÓN
+========================= */
 
 function showTab(tabId){
 
