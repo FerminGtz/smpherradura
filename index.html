@@ -274,12 +274,14 @@ playersContainer.innerHTML=html;
 
 const rss="https://news.google.com/rss/search?q=golf+pga+tour&hl=es-419&gl=MX&ceid=MX:es";
 
-fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(rss))
-.then(res=>res.text())
-.then(str=>{
+fetch("https://api.allorigins.hexlet.app/get?url="+encodeURIComponent(rss))
+.then(res=>res.json())
+.then(data=>{
+
+const xmlText=data.contents;
 
 const parser=new DOMParser();
-const xml=parser.parseFromString(str,"text/xml");
+const xml=parser.parseFromString(xmlText,"text/xml");
 
 const items=xml.querySelectorAll("item");
 
@@ -322,8 +324,8 @@ ${title}
 
 })
 .catch(err=>{
-console.log("Error noticias:",err);
-document.getElementById("newsList").innerHTML="No se pudieron cargar noticias.";
+console.log("Error cargando noticias:",err);
+document.getElementById("newsList").innerHTML="<p>No se pudieron cargar noticias.</p>";
 });
  
  
