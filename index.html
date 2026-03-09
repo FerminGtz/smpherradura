@@ -270,17 +270,15 @@ playersContainer.innerHTML=html;
 
 // -------- NOTICIAS DE GOLF --------
 
-
 // -------- NOTICIAS DE GOLF --------
 
-const rss = "https://news.google.com/rss/search?q=golf+pga+tour&hl=es-419&gl=MX&ceid=MX:es";
+const rss = "https://www.espn.com/espn/rss/golf/news";
 
 fetch("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rss))
 .then(res => res.json())
 .then(data => {
 
 const container = document.getElementById("newsList");
-
 container.innerHTML = "";
 
 if(!data.items || data.items.length === 0){
