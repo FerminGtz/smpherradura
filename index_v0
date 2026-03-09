@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senior Match Play La Herradura</title>
+
+<style>
+
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f7}
+
+header{background:#0b3d2e;color:white;padding:20px;text-align:center}
+
+header img{width:140px;margin-bottom:10px}
+
+nav{background:#145a32;padding:10px;text-align:center}
+
+nav a{color:white;margin:0 15px;text-decoration:none;font-weight:bold}
+
+section{padding:40px;max-width:1200px;margin:auto}
+
+.card{
+background:white;
+padding:20px;
+border-radius:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.1);
+margin-bottom:30px
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+font-size:14px
+}
+
+th,td{
+padding:8px;
+border-bottom:1px solid #ddd;
+text-align:center
+}
+
+th{
+background:#0b3d2e;
+color:white;
+}
+
+.groupTitle{
+margin-top:30px;
+font-size:22px;
+color:#145a32
+}
+
+.firstPlace{
+background:#e8f8f0;
+font-weight:bold
+}
+
+.secondPlace{
+background:#fdf5e6
+}
+
+footer{
+background:#0b3d2e;
+color:white;
+text-align:center;
+padding:15px;
+margin-top:40px
+}
+
+/* BOTÓN RESULTADOS */
+
+.resultBtn{
+display:inline-block;
+background:#145a32;
+color:white;
+padding:12px 20px;
+border-radius:6px;
+text-decoration:none;
+font-weight:bold;
+margin-bottom:20px;
+}
+
+.resultBtn:hover{
+background:#0b3d2e;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+<img src="SMP Circular.png">
+
+<h1>Senior Match Play La Herradura</h1>
+
+<p>Torneo de Convivencia, Competencia e Integración</p>
+
+</header>
+
+
+<nav>
+
+<a href="#" onclick="showTab('leaderboard')">Leaderboard</a>
+
+<a href="#" onclick="showTab('jugadores')">Jugadores</a>
+
+<a href="#" onclick="showTab('resultados')">Resultados</a>
+
+<a href="#" onclick="showTab('contacto')">Contacto</a>
+
+</nav>
+
+
+
+<section id="leaderboard" class="tab">
+
+<div class="card">
+
+<h2>Leaderboard por Grupo</h2>
+
+<div id="groupsContainer"></div>
+
+</div>
+
+</section>
+
+
+
+<section id="jugadores" class="tab" style="display:none">
+
+<div class="card">
+
+<h2>Jugadores del Torneo</h2>
+
+<div id="playersContainer"></div>
+
+</div>
+
+</section>
+
+
+
+<section id="resultados" class="tab" style="display:none">
+
+<div class="card">
+
+<h2>Resultados del Torneo</h2>
+
+<a href="LINK_DEL_GOOGLE_FORM" target="_blank" class="resultBtn">
+
+➕ Agregar Resultado
+
+</a>
+
+<div id="resultsContainer"></div>
+
+</div>
+
+</section>
+
+
+
+<section id="contacto" class="tab" style="display:none">
+
+<div class="card">
+
+<h2>Contacto</h2>
+
+<p>Si tienes dudas sobre el torneo, envíanos un mensaje.</p>
+
+<form action="https://formsubmit.co/smpherradura@gmail.com" method="POST">
+
+<input type="hidden" name="_subject" value="Nuevo mensaje - Senior Match Play">
+
+<input type="hidden" name="_captcha" value="false">
+
+<label>Nombre</label>
+
+<input type="text" name="name" required>
+
+<label>Email</label>
+
+<input type="email" name="email" required>
+
+<label>Mensaje</label>
+
+<textarea name="message" rows="5" required></textarea>
+
+<button type="submit">Enviar Mensaje</button>
+
+</form>
+
+
+<hr style="margin:30px 0">
+
+
+<h3>Grupo Oficial de WhatsApp</h3>
+
+<a href="https://chat.whatsapp.com/EgCeLLUf7yqJ9vXTMmUZBy"
+
+target="_blank"
+
+class="resultBtn">
+
+🟢 Unirse al Grupo de WhatsApp
+
+</a>
+
+
+</div>
+
+</section>
+
+
+
+<footer>
+
+Senior Match Play La Herradura
+
+</footer>
+
+
+
+<script>
+
+const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
+
+const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=762416889&single=true&output=csv";
+
+
+
+/* LEADERBOARD */
+
+fetch(sheetURL)
+
+.then(res=>res.text())
+
+.then(data=>{
+
+const rows=data.trim().split("\n");
+
+const headers=rows[0].split(",");
+
+const idxWinner=headers.indexOf("NombreRes");
+
+const idxLoser=headers.indexOf("Perdedor");
+
+const idxWinDiff=headers.indexOf("Diferencia");
+
+const idxLoseDiff=headers.indexOf("Dif Perdedor");
+
+const idxGrupo=headers.indexOf("GrupoRes");
+
+let players={};
+
+
+rows.slice(1).forEach(row=>{
+
+const cols=row.split(",");
+
+const winner=cols[idxWinner];
+
+const loser=cols[idxLoser];
+
+const winDiff=Number(cols[idxWinDiff]||0);
+
+const loseDiff=Number(cols[idxLoseDiff]||0);
+
+
+if(winner){
+
+if(!players[winner]) players[winner]={jugador:winner,grupo:"",jugados:0,ganados:0,diff:0};
+
+players[winner].jugados++;
+
+players[winner].ganados++;
+
+players[winner].diff+=winDiff;
+
+}
+
+
+if(loser){
+
+if(!players[loser]) players[loser]={jugador:loser,grupo:"",jugados:0,ganados:0,diff:0};
+
+players[loser].jugados++;
+
+players[loser].diff-=loseDiff;
+
+}
+
+});
+
+
+rows.slice(1).forEach(row=>{
+
+const cols=row.split(",");
+
+const winner=cols[idxWinner];
+
+const loser=cols[idxLoser];
+
+const grupo=cols[idxGrupo];
+
+
+if(winner && players[winner]) players[winner].grupo=grupo;
+
+if(loser && players[loser] && !players[loser].grupo) players[loser].grupo=grupo;
+
+});
+
+
+let groups={};
+
+Object.values(players).forEach(p=>{
+
+if(!groups[p.grupo]) groups[p.grupo]=[];
+
+groups[p.grupo].push(p);
+
+});
+
+
+const container=document.getElementById("groupsContainer");
+
+container.innerHTML="";
+
+
+Object.keys(groups).sort().forEach(g=>{
+
+const jugadores=groups[g].sort((a,b)=>{
+
+if(b.ganados!==a.ganados) return b.ganados-a.ganados;
+
+return b.diff-a.diff;
+
+});
+
+
+let html=`<div class="groupTitle">Grupo ${g}</div>`;
+
+html+="<table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>";
+
+
+jugadores.forEach((p,i)=>{
+
+const posClass=(i===0)?'firstPlace':(i===1?'secondPlace':'');
+
+html+=`<tr class="${posClass}"><td>${i+1}</td><td>${p.jugador}</td><td>${p.jugados}</td><td>${p.ganados}</td><td>${p.diff}</td></tr>`;
+
+});
+
+
+html+="</table>";
+
+container.innerHTML+=html;
+
+});
+
+});
+
+
+
+/* RESULTADOS */
+
+fetch(sheetURL)
+
+.then(res=>res.text())
+
+.then(data=>{
+
+const rows=data.trim().split("\n");
+
+const headers=rows[0].split(",");
+
+const idxGrupo=headers.indexOf("GrupoRes");
+
+const idxWinner=headers.indexOf("NombreRes");
+
+const idxLoser=headers.indexOf("Perdedor");
+
+const idxDiff=headers.indexOf("Diferencia");
+
+const container=document.getElementById("resultsContainer");
+
+
+let html=`<table>
+
+<tr>
+
+<th>Grupo</th>
+
+<th>Ganador</th>
+
+<th>Perdedor</th>
+
+<th>Diferencia</th>
+
+</tr>`;
+
+
+rows.slice(1).forEach(row=>{
+
+const cols=row.split(",");
+
+html+=`<tr>
+
+<td>${cols[idxGrupo]}</td>
+
+<td>${cols[idxWinner]}</td>
+
+<td>${cols[idxLoser]}</td>
+
+<td>${cols[idxDiff]}</td>
+
+</tr>`;
+
+});
+
+
+html+="</table>";
+
+container.innerHTML=html;
+
+});
+
+
+
+/* JUGADORES */
+
+fetch(playersSheetURL)
+
+.then(res=>res.text())
+
+.then(data=>{
+
+const rows=data.trim().split("\n");
+
+const headers=rows[0].split(",");
+
+
+const idxNombre=headers.findIndex(h=>h.toLowerCase().includes("nombre")||h.toLowerCase().includes("jugador"));
+
+const idxGrupo=headers.findIndex(h=>h.toLowerCase().includes("grupo"));
+
+const idxGHIN=headers.findIndex(h=>h.toLowerCase().includes("ghin"));
+
+const idxEmail=headers.findIndex(h=>h.toLowerCase().includes("email")||h.toLowerCase().includes("correo"));
+
+const idxTel=headers.findIndex(h=>h.toLowerCase().includes("tel")||h.toLowerCase().includes("telefono"));
+
+
+let players=[];
+
+
+rows.slice(1).forEach(row=>{
+
+const cols=row.split(",");
+
+players.push({
+
+grupo:cols[idxGrupo]||"",
+
+nombre:cols[idxNombre]||"",
+
+ghin:cols[idxGHIN]||"",
+
+email:cols[idxEmail]||"",
+
+telefono:cols[idxTel]||""
+
+});
+
+});
+
+
+players.sort((a,b)=>{
+
+if(a.grupo!==b.grupo) return a.grupo.localeCompare(b.grupo);
+
+return a.nombre.localeCompare(b.nombre);
+
+});
+
+
+const playersContainer=document.getElementById("playersContainer");
+
+
+let html=`<table>
+
+<tr>
+
+<th>Grupo</th>
+
+<th>Jugador</th>
+
+<th>GHIN</th>
+
+<th>Email</th>
+
+<th>Teléfono</th>
+
+</tr>`;
+
+
+let grupoAnterior="";
+
+
+players.forEach(p=>{
+
+
+if(grupoAnterior!=="" && p.grupo!==grupoAnterior){
+
+html+=`<tr><td colspan="5" style="height:15px"></td></tr>`;
+
+}
+
+
+html+=`<tr>
+
+<td>${p.grupo}</td>
+
+<td>${p.nombre}</td>
+
+<td>${p.ghin}</td>
+
+<td>${p.email}</td>
+
+<td>${p.telefono}</td>
+
+</tr>`;
+
+
+grupoAnterior=p.grupo;
+
+});
+
+
+html+="</table>";
+
+playersContainer.innerHTML=html;
+
+});
+
+
+function showTab(tabId){
+
+const tabs=document.querySelectorAll('.tab');
+
+tabs.forEach(t=>t.style.display='none');
+
+document.getElementById(tabId).style.display='block';
+
+}
+
+</script>
+
+</body>
+</html>
