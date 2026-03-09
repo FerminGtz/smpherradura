@@ -173,12 +173,29 @@ const rows=data.trim().split("\n");
 const headers=rows[0].split(",");
 
 // detectar columnas
-const idxGrupo=headers.findIndex(h=>h.toLowerCase().includes("grupo"));
-const idxNombre=headers.findIndex(h=>h.toLowerCase().includes("jugador"));
-const idxGHIN=headers.findIndex(h=>h.toLowerCase().includes("ghin"));
-const idxEmail=headers.findIndex(h=>h.toLowerCase().includes("correo"));
-const idxTel=headers.findIndex(h=>h.toLowerCase().includes("telefono"));
+const idxNombre=headers.findIndex(h =>
+h.toLowerCase().includes("nombre") ||
+h.toLowerCase().includes("jugador")
+);
 
+const idxGrupo=headers.findIndex(h =>
+h.toLowerCase().includes("grupo")
+);
+
+const idxGHIN=headers.findIndex(h =>
+h.toLowerCase().includes("ghin")
+);
+
+const idxEmail=headers.findIndex(h =>
+h.toLowerCase().includes("email") ||
+h.toLowerCase().includes("correo")
+);
+
+const idxTel=headers.findIndex(h =>
+h.toLowerCase().includes("tel") ||
+h.toLowerCase().includes("telefono")
+);
+ 
 let players=[];
 
 rows.slice(1).forEach(row=>{
