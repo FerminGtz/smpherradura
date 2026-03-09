@@ -97,15 +97,15 @@ return b.diff-a.diff;
 
 });
 
-let html=`<div class="groupTitle">Grupo ${g}</div>`;
+let htmlLeaderboard=`<div class="groupTitle">Grupo ${g}</div>`;
 
-html+="<table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>";
+htmlLeaderboard+="<table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>";
 
 jugadores.forEach((p,i)=>{
 
 const posClass=(i===0)?'firstPlace':(i===1?'secondPlace':'');
 
-html+=`<tr class="${posClass}">
+htmlLeaderboard+=`<tr class="${posClass}">
 <td>${i+1}</td>
 <td>${p.jugador}</td>
 <td>${p.jugados}</td>
@@ -115,15 +115,13 @@ html+=`<tr class="${posClass}">
 
 });
 
-html+="</table>";
+htmlLeaderboard+="</table>";
 
-container.innerHTML+=html;
+container.innerHTML+=htmlLeaderboard;
 
 });
 
 })
-
-
 .catch(err=>console.log("Leaderboard error",err));
 
 
@@ -169,7 +167,7 @@ results.sort((a,b)=> new Date(b.fecha)-new Date(a.fecha));
 
 const container=document.getElementById("resultsContainer");
 
-let html=`
+let htmlResultados=`
 <table>
 <tr>
 <th>Fecha</th>
@@ -182,7 +180,7 @@ let html=`
 
 results.forEach(r=>{
 
-html+=`
+htmlResultados+=`
 <tr>
 <td>${r.fecha}</td>
 <td>${r.grupo}</td>
@@ -194,9 +192,9 @@ html+=`
 
 });
 
-html+="</table>";
+htmlResultados+="</table>";
 
-container.innerHTML=html;
+container.innerHTML=htmlResultados;
 
 })
 .catch(err=>console.log("Resultados error",err));
@@ -238,14 +236,13 @@ telefono:cols[idxTel]||""
 players.sort((a,b)=>{
 
 if(a.grupo!==b.grupo) return a.grupo.localeCompare(b.grupo);
-
 return a.nombre.localeCompare(b.nombre);
 
 });
 
 const playersContainer=document.getElementById("playersContainer");
 
-let html=`
+let htmlJugadores=`
 <table>
 <tr>
 <th>Grupo</th>
@@ -262,11 +259,11 @@ players.forEach(p=>{
 
 if(grupoAnterior!=="" && p.grupo!==grupoAnterior){
 
-html+=`<tr><td colspan="5" style="height:15px"></td></tr>`;
+htmlJugadores+=`<tr><td colspan="5" style="height:15px"></td></tr>`;
 
 }
 
-html+=`
+htmlJugadores+=`
 <tr>
 <td>${p.grupo}</td>
 <td>${p.nombre}</td>
@@ -280,9 +277,9 @@ grupoAnterior=p.grupo;
 
 });
 
-html+="</table>";
+htmlJugadores+="</table>";
 
-playersContainer.innerHTML=html;
+playersContainer.innerHTML=htmlJugadores;
 
 })
 .catch(err=>console.log("Jugadores error",err));
@@ -303,6 +300,3 @@ document.getElementById(tabId).style.display='block';
 }
 
 </script>
-
-</body>
-</html>
