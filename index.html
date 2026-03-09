@@ -233,7 +233,19 @@ let html=`
 </tr>
 `;
 
+let grupoAnterior="";
+
 players.forEach(p=>{
+
+// insertar línea en blanco si cambia el grupo
+if(grupoAnterior!=="" && p.grupo!==grupoAnterior){
+html+=`
+<tr>
+<td colspan="5" style="height:15px;background:#ffffff"></td>
+</tr>
+`;
+}
+
 html+=`
 <tr>
 <td>${p.grupo}</td>
@@ -243,7 +255,11 @@ html+=`
 <td>${p.telefono}</td>
 </tr>
 `;
+
+grupoAnterior=p.grupo;
+
 });
+ 
 
 html+="</table>";
 
