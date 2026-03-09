@@ -378,57 +378,65 @@ const rows=data.trim().split("\n");
 
 const headers=rows[0].split(",");
 
+const idxFecha=headers.indexOf("Fecha");
 const idxGrupo=headers.indexOf("GrupoRes");
-
 const idxWinner=headers.indexOf("NombreRes");
-
 const idxLoser=headers.indexOf("Perdedor");
-
 const idxDiff=headers.indexOf("Diferencia");
 
-const container=document.getElementById("resultsContainer");
-
-
-let html=`<table>
-
-<tr>
-
-<th>Grupo</th>
-
-<th>Ganador</th>
-
-<th>Perdedor</th>
-
-<th>Diferencia</th>
-
-</tr>`;
-
+let results=[];
 
 rows.slice(1).forEach(row=>{
 
 const cols=row.split(",");
 
+results.push({
+fecha:cols[idxFecha] || "",
+grupo:cols[idxGrupo] || "",
+ganador:cols[idxWinner] || "",
+perdedor:cols[idxLoser] || "",
+diff:cols[idxDiff] || ""
+});
+
+});
+
+/* ordenar resultados por fecha más reciente */
+
+results.sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
+
+const container=document.getElementById("resultsContainer");
+
+let html=`<table>
+
+<tr>
+
+<th>Fecha</th>
+<th>Grupo</th>
+<th>Ganador</th>
+<th>Perdedor</th>
+<th>Diferencia</th>
+
+</tr>`;
+
+results.forEach(r=>{
+
 html+=`<tr>
 
-<td>${cols[idxGrupo]}</td>
-
-<td>${cols[idxWinner]}</td>
-
-<td>${cols[idxLoser]}</td>
-
-<td>${cols[idxDiff]}</td>
+<td>${r.fecha}</td>
+<td>${r.grupo}</td>
+<td>${r.ganador}</td>
+<td>${r.perdedor}</td>
+<td>${r.diff}</td>
 
 </tr>`;
 
 });
-
 
 html+="</table>";
 
 container.innerHTML=html;
 
 });
-
 
 
 /* JUGADORES */
