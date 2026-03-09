@@ -271,8 +271,8 @@ playersContainer.innerHTML=html;
 // -------- NOTICIAS DE GOLF --------
 
 
-const rss="https://news.google.com/rss/search?q=golf+pga+liv+ancer&hl=es-419&gl=MX&ceid=MX:es";
-
+const rss="https://news.google.com/rss/search?q=PGA+Tour+OR+LIV+Golf+OR+Masters+Golf+OR+US+Open+Golf&hl=es-419&gl=MX&ceid=MX:es";
+ 
 fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(rss))
 .then(res=>res.text())
 .then(str=>{
