@@ -1,213 +1,123 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Senior Match Play La Herradura</title>
-<style>
-body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f7}
-header{background:#0b3d2e;color:white;padding:20px;text-align:center}
-header img{width:140px;margin-bottom:10px}
-nav{background:#145a32;padding:10px;text-align:center}
-nav a{color:white;margin:0 15px;text-decoration:none;font-weight:bold}
-section{padding:40px;max-width:1200px;margin:auto}
-.card{background:white;padding:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-bottom:30px}
-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-th,td{padding:8px;border-bottom:1px solid #ddd;text-align:center}
-th{background:#e8f5e9}
-.groupTitle{margin-top:30px;font-size:22px;color:#145a32}
-.firstPlace{background:#e8f8f0;font-weight:bold}
-.secondPlace{background:#fdf5e6}
-.playerCard{display:inline-block;width:220px;background:#ffffff;border-radius:8px;padding:15px;margin:10px;box-shadow:0 2px 6px rgba(0,0,0,0.1)}
-footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:40px}
-</style>
-</head>
-<body>
-
-<header>
-<img src="SMP Circular.png" alt="Senior Match Play Logo">
-<h1>Senior Match Play La Herradura</h1>
-<p>Torneo de Convivencia, Competencia e Integración</p>
-</header>
-
-<nav>
-<a href="#" onclick="showTab('leaderboard')">Leaderboard</a>
-<a href="#" onclick="showTab('jugadores')">Jugadores</a>
-<a href="#" onclick="showTab('noticias')">Noticias Golf</a>
-<a href="#" onclick="showTab('contacto')">Contacto</a>
-</nav>
-
-<section id="leaderboard" class="tab">
-<div class="card">
-<h2>Leaderboard por Grupo</h2>
-<div id="groupsContainer"></div>
-</div>
-</section>
-
-<section id="jugadores" class="tab" style="display:none">
-<div class="card">
-<h2>Jugadores del Torneo</h2>
-<div id="playersContainer"></div>
-</div>
-</section>
-
-<section id="noticias" class="tab" style="display:none">
-<div class="card">
-<h2>Noticias de Golf (PGA / LIV)</h2>
-<ul id="newsList"></ul>
-</div>
-</section>
-
-<section id="contacto" class="tab" style="display:none">
-<div class="card">
-<h2>Contacto</h2>
-<form action="https://formsubmit.co/smpherradura@gmail.com" method="POST">
-<input type="text" name="name" placeholder="Nombre" required>
-<input type="email" name="email" placeholder="Email" required>
-<textarea name="message" placeholder="Mensaje" required></textarea>
-<button type="submit">Enviar</button>
-</form>
-</div>
-</section>
-
-<footer>
-Senior Match Play La Herradura
-</footer>
-
 <script>
 
-const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
+// -------- URL DEL GOOGLE SHEET (CSV) --------
+const sheetURL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
 
+// -------- FUNCION PARA PARSEAR CSV SEGURO --------
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split("\n");
+
+  lines.forEach(line => {
+    const cols = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+    rows.push(cols.map(c => c.replace(/^"|"$/g, "").trim()));
+  });
+
+  return rows;
+}
+
+// -------- LEER GOOGLE SHEET --------
 fetch(sheetURL)
-.then(res=>res.text())
-.then(data=>{
+.then(res => res.text())
+.then(csv => {
 
-const rows=data.trim().split("
-");
-const headers=rows[0].split(",");
+  const data = parseCSV(csv);
+  const headers = data[0];
 
-const idxWinner=headers.indexOf("NombreRes");
-const idxLoser=headers.indexOf("Perdedor");
-const idxWinDiff=headers.indexOf("Diferencia");
-const idxLoseDiff=headers.indexOf("Dif Perdedor");
-const idxGrupo=headers.indexOf("GrupoRes");
+  const idxWinner = headers.indexOf("NombreRes");
+  const idxLoser = headers.indexOf("Perdedor");
+  const idxWinDiff = headers.indexOf("Diferencia");
+  const idxLoseDiff = headers.indexOf("Dif Perdedor");
+  const idxGrupo = headers.indexOf("GrupoRes");
 
-let players={};
+  const players = {};
 
-rows.slice(1).forEach(row=>{
-const cols=row.split(",");
+  // -------- CALCULAR ESTADISTICAS --------
+  data.slice(1).forEach(row => {
 
-const winner=cols[idxWinner];
-const loser=cols[idxLoser];
-const winDiff=Number(cols[idxWinDiff]||0);
-const loseDiff=Number(cols[idxLoseDiff]||0);
+    const winner = row[idxWinner];
+    const loser = row[idxLoser];
+    const winDiff = Number(row[idxWinDiff] || 0);
+    const loseDiff = Number(row[idxLoseDiff] || 0);
+    const grupo = row[idxGrupo];
 
-if(winner){
-if(!players[winner]) players[winner]={jugador:winner,grupo:"",jugados:0,ganados:0,diff:0};
-players[winner].jugados++;
-players[winner].ganados++;
-players[winner].diff+=winDiff;
-}
+    if (winner) {
+      if (!players[winner])
+        players[winner] = { jugador:winner, grupo:grupo, jj:0, jg:0, diff:0 };
 
-if(loser){
-if(!players[loser]) players[loser]={jugador:loser,grupo:"",jugados:0,ganados:0,diff:0};
-players[loser].jugados++;
-players[loser].diff-=loseDiff;
-}
+      players[winner].jj++;
+      players[winner].jg++;
+      players[winner].diff += winDiff;
+    }
 
-});
+    if (loser) {
+      if (!players[loser])
+        players[loser] = { jugador:loser, grupo:grupo, jj:0, jg:0, diff:0 };
 
-// asignar grupos
-rows.slice(1).forEach(row=>{
-const cols=row.split(",");
-const winner=cols[idxWinner];
-const loser=cols[idxLoser];
-const grupo=cols[idxGrupo];
+      players[loser].jj++;
+      players[loser].diff -= loseDiff;
+    }
 
-if(winner && players[winner]) players[winner].grupo=grupo;
-if(loser && players[loser] && !players[loser].grupo) players[loser].grupo=grupo;
-});
+  });
 
-// agrupar
-let groups={};
-Object.values(players).forEach(p=>{
-if(!groups[p.grupo]) groups[p.grupo]=[];
-groups[p.grupo].push(p);
-});
+  // -------- AGRUPAR --------
+  const groups = {};
 
-const container=document.getElementById("groupsContainer");
-container.innerHTML="";
+  Object.values(players).forEach(p=>{
+    if(!groups[p.grupo]) groups[p.grupo] = [];
+    groups[p.grupo].push(p);
+  });
 
-Object.keys(groups).sort().forEach(g=>{
+  // -------- CONSTRUIR LEADERBOARD --------
+  const container = document.getElementById("groupsContainer");
+  container.innerHTML = "";
 
-const jugadores=groups[g].sort((a,b)=>{
-if(b.ganados!==a.ganados) return b.ganados-a.ganados;
-return b.diff-a.diff;
-});
+  Object.keys(groups).sort().forEach(g=>{
 
-let html=`<div class="groupTitle">Grupo ${g}</div>`;
-html+="<table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>";
+    const jugadores = groups[g].sort((a,b)=>{
+      if(b.jg !== a.jg) return b.jg - a.jg;
+      return b.diff - a.diff;
+    });
 
-jugadores.forEach((p,i)=>{
-const posClass=(i===0)?'firstPlace':(i===1?'secondPlace':'');
-html+=`<tr class="${posClass}"><td>${i+1}</td><td>${p.jugador}</td><td>${p.jugados}</td><td>${p.ganados}</td><td>${p.diff}</td></tr>`;
-});
+    let html = `<div class="groupTitle">Grupo ${g}</div>`;
+    html += `<table>
+    <tr>
+      <th>Pos</th>
+      <th>Jugador</th>
+      <th>JJ</th>
+      <th>JG</th>
+      <th>Dif</th>
+    </tr>`;
 
-html+="</table>";
-container.innerHTML+=html;
-});
+    jugadores.forEach((p,i)=>{
+      const cls = i===0 ? "firstPlace" : (i===1 ? "secondPlace" : "");
+      html += `<tr class="${cls}">
+        <td>${i+1}</td>
+        <td>${p.jugador}</td>
+        <td>${p.jj}</td>
+        <td>${p.jg}</td>
+        <td>${p.diff}</td>
+      </tr>`;
+    });
 
-// tarjetas jugadores
-const playersContainer=document.getElementById("playersContainer");
-playersContainer.innerHTML="";
+    html += "</table>";
 
-Object.values(players).forEach(p=>{
-playersContainer.innerHTML+=`
-<div class="playerCard">
-<h3>${p.jugador}</h3>
-<p>Grupo ${p.grupo}</p>
-<p>Juegos Jugados: ${p.jugados}</p>
-<p>Juegos Ganados: ${p.ganados}</p>
-<p>Diferencia: ${p.diff}</p>
-</div>`;
-});
+    container.innerHTML += html;
 
-});
+  });
 
-// noticias golf
-
-
-const rss="https://www.golfdigest.com/feed";
-
-fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rss}`)
-.then(res=>res.json())
-.then(data=>{
-const list=document.getElementById("newsList");
-
-const filtered=data.items.filter(n=>
- n.title.toLowerCase().includes("pga") ||
- n.title.toLowerCase().includes("liv") ||
- n.title.toLowerCase().includes("ancer") ||
- n.title.toLowerCase().includes("ochoa")
-);
-
-filtered.slice(0,8).forEach(item=>{
-const li=document.createElement("li");
-li.innerHTML=`<a href="${item.link}" target="_blank">${item.title}</a>`;
-list.appendChild(li);
-});
-
+})
+.catch(err=>{
+  console.error("Error cargando Google Sheet:", err);
 });
 
 
-// -------- TAB NAVIGATION --------
+// -------- TABS --------
 function showTab(tabId){
-const tabs=document.querySelectorAll('.tab');
-tabs.forEach(t=>t.style.display='none');
-document.getElementById(tabId).style.display='block';
+  const tabs=document.querySelectorAll('.tab');
+  tabs.forEach(t=>t.style.display='none');
+  document.getElementById(tabId).style.display='block';
 }
 
 </script>
-
-</body>
-</html>
