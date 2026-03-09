@@ -29,36 +29,145 @@ footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:
 </header>
 
 <nav>
-<a href="#leaderboard">Leaderboard</a>
-<a href="#jugadores">Jugadores</a>
-<a href="#noticias">Noticias Golf</a>
-<a href="#contacto">Contacto</a>
+<a href="#" onclick="showTab('leaderboard')">Leaderboard</a>
+<a href="#" onclick="showTab('jugadores')">Jugadores</a>
+<a href="#" onclick="showTab('noticias')">Noticias Golf</a>
+<a href="#" onclick="showTab('contacto')">Contacto</a>
 </nav>
 
-<section id="leaderboard">
+<section id="leaderboard" class="tab">
 <div class="card">
 <h2>Leaderboard por Grupo</h2>
 <div id="groupsContainer"></div>
 </div>
 </section>
 
-<section id="jugadores">
+<section id="jugadores" class="tab" style="display:none">
 <div class="card">
 <h2>Jugadores del Torneo</h2>
 <div id="playersContainer"></div>
 </div>
 </section>
 
-<section id="noticias">
+<section id="noticias" class="tab" style="display:none">
 <div class="card">
 <h2>Noticias de Golf (PGA / LIV)</h2>
 <ul id="newsList"></ul>
 </div>
 </section>
 
-<section id="contacto">
+<section id="contacto" class="tab" style="display:none">
 <div class="card">
 <h2>Contacto</h2>
+<form action="https://formsubmit.co/smpherradura@gmail.com" method="POST">
+<input type="text" name="name" placeholder="Nombre" required>
+<input type="email" name="email" placeholder="Email" required>
+<textarea name="message" placeholder="Mensaje" required></textarea>
+<button type="submit">Enviar</button>
+</form>
+</div>
+</section>
+
+<footer>
+Senior Match Play La Herradura
+</footer>
+
+<script>
+
+const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
+
+fetch(sheetURL)
+.then(res=>res.text())
+.then(data=>{
+
+const rows=data.split("\n").slice(1);
+let groups={};
+
+rows.forEach(row=>{
+const cols=row.split(",");
+if(cols.length>3){
+const jugador=cols[0];
+const grupo=cols[1];
+const ganados=cols[2];
+const diff=cols[3];
+
+if(!groups[grupo]) groups[grupo]=[];
+
+groups[grupo].push({jugador,ganados,diff});
+}
+});
+
+const container=document.getElementById("groupsContainer");
+
+Object.keys(groups).forEach(g=>{
+
+let html=`<div class="groupTitle">Grupo ${g}</div>`;
+html+="<table><tr><th>Jugador</th><th>Matches Ganados</th><th>Diferencia</th></tr>";
+
+groups[g].forEach(p=>{
+html+=`<tr><td>${p.jugador}</td><td>${p.ganados}</td><td>${p.diff}</td></tr>`;
+});
+
+html+="</table>";
+
+container.innerHTML+=html;
+
+});
+
+// jugadores
+const playersContainer=document.getElementById("playersContainer");
+Object.keys(groups).forEach(g=>{
+
+groups[g].forEach(p=>{
+playersContainer.innerHTML+=`
+<div class="playerCard">
+<h3>${p.jugador}</h3>
+<p>Grupo ${g}</p>
+<p>Ganados: ${p.ganados}</p>
+<p>Diferencia: ${p.diff}</p>
+</div>`;
+
+});
+
+});
+
+});
+
+// noticias golf
+const rss="https://www.golfdigest.com/feed";
+
+fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rss}`)
+.then(res=>res.json())
+.then(data=>{
+const list=document.getElementById("newsList");
+
+const filtered=data.items.filter(n=>
+ n.title.toLowerCase().includes("pga") ||
+ n.title.toLowerCase().includes("liv") ||
+ n.title.toLowerCase().includes("ancer") ||
+ n.title.toLowerCase().includes("ochoa")
+);
+
+filtered.slice(0,8).forEach(item=>{
+const li=document.createElement("li");
+li.innerHTML=`<a href="${item.link}" target="_blank">${item.title}</a>`;
+list.appendChild(li);
+});
+
+});
+
+
+// -------- TAB NAVIGATION --------
+function showTab(tabId){
+const tabs=document.querySelectorAll('.tab');
+tabs.forEach(t=>t.style.display='none');
+document.getElementById(tabId).style.display='block';
+}
+
+</script>
+
+</body>
+</html>
 <form action="https://formsubmit.co/smpherradura@gmail.com" method="POST">
 <input type="text" name="name" placeholder="Nombre" required>
 <input type="email" name="email" placeholder="Email" required>
