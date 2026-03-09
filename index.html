@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senior Match Play La Herradura</title>
+<style>
+body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f7}
+header{background:#0b3d2e;color:white;padding:20px;text-align:center}
+nav{background:#145a32;padding:10px;text-align:center}
+nav a{color:white;margin:0 15px;text-decoration:none;font-weight:bold}
+section{padding:40px;max-width:1100px;margin:auto}
+.card{background:white;padding:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-bottom:30px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px;border-bottom:1px solid #ddd;text-align:center}
+th{background:#e8f5e9}
+footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:40px}
+button{background:#145a32;color:white;border:none;padding:10px 16px;border-radius:5px;cursor:pointer}
+input,textarea{width:100%;padding:10px;margin-top:8px;margin-bottom:12px;border-radius:4px;border:1px solid #ccc}
+</style>
+</head>
+<body>
+
+<header>
+<img src="SMP Circular.png" alt="Senior Match Play Logo" style="width:140px;display:block;margin:0 auto 10px auto;">
+<h1>Senior Match Play La Herradura</h1>
+<p>Torneo de Convivencia, Competencia e Integración</p>
+</header>
+
+<nav>
+<a href="#posiciones">Posiciones</a>
+<a href="#noticias">Noticias</a>
+<a href="#majors">Majors</a>
+<a href="#contacto">Contacto</a>
+</nav>
+
+<section id="posiciones">
+<div class="card">
+<h2>Tabla de Posiciones</h2>
+<p>Los datos se cargan automáticamente desde Google Sheets.</p>
+<table id="tablaPosiciones">
+<thead>
+<tr>
+<th>Jugador</th>
+<th>Grupo</th>
+<th>Matches Ganados</th>
+<th>Diferencia Hoyos</th>
+<th>Puntos</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
+</section>
+
+<section id="noticias">
+<div class="card">
+<h2>Noticias de Golf</h2>
+<ul id="newsList"></ul>
+</div>
+</section>
+
+<section id="majors">
+<div class="card">
+<h2>Calendario Majors</h2>
+<table>
+<tr><th>Torneo</th><th>Fecha</th><th>Sede</th></tr>
+<tr><td>The Masters</td><td>Abril</td><td>Augusta National</td></tr>
+<tr><td>PGA Championship</td><td>Mayo</td><td>Por confirmar</td></tr>
+<tr><td>US Open</td><td>Junio</td><td>Por confirmar</td></tr>
+<tr><td>The Open Championship</td><td>Julio</td><td>Por confirmar</td></tr>
+</table>
+</div>
+</section>
+
+<section id="contacto">
+<div class="card">
+<h2>Contacto</h2>
+<form action="https://formsubmit.co/smpherradura@gmail.com" method="POST">
+<input type="text" name="name" placeholder="Nombre" required>
+<input type="email" name="email" placeholder="Email" required>
+<textarea name="message" placeholder="Mensaje" required></textarea>
+<button type="submit">Enviar</button>
+</form>
+</div>
+</section>
+
+<footer>
+Senior Match Play La Herradura
+</footer>
+
+<script>
+
+// -------- CARGAR TABLA DESDE GOOGLE SHEETS CSV --------
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
+
+fetch(sheetURL)
+.then(res=>res.text())
+.then(data=>{
+const rows=data.split("\n").slice(1);
+const tbody=document.querySelector("#tablaPosiciones tbody");
+rows.forEach(row=>{
+const cols=row.split(",");
+if(cols.length>1){
+const tr=document.createElement("tr");
+cols.forEach(c=>{
+const td=document.createElement("td");
+td.innerText=c;
+tr.appendChild(td);
+});
+tbody.appendChild(tr);
+}
+});
+});
+
+// -------- NOTICIAS RSS GOLF --------
+const rss="https://www.golfdigest.com/feed";
+fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rss}`)
+.then(res=>res.json())
+.then(data=>{
+const list=document.getElementById("newsList");
+data.items.slice(0,6).forEach(item=>{
+const li=document.createElement("li");
+li.innerHTML=`<a href="${item.link}" target="_blank">${item.title}</a>`;
+list.appendChild(li);
+});
+});
+
+</script>
+
+</body>
+</html>
