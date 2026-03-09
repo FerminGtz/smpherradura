@@ -80,6 +80,7 @@ Senior Match Play La Herradura
 <script>
 
 const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
+const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=762416889&single=true&output=csv";
 
 fetch(sheetURL)
 .then(res=>res.text())
@@ -159,19 +160,40 @@ html+="</table>";
 container.innerHTML+=html;
 });
 
-// tarjetas jugadores
+// -------- JUGADORES DESDE OTRO CSV --------
+
+fetch(playersSheetURL)
+.then(res=>res.text())
+.then(data=>{
+
+const rows=data.trim().split("\n");
+const headers=rows[0].split(",");
+
+const idxNombre=headers.indexOf("Jugador");
+const idxGrupo=headers.indexOf("Grupo");
+const idxHcp=headers.indexOf("Handicap");
+
 const playersContainer=document.getElementById("playersContainer");
 playersContainer.innerHTML="";
 
-Object.values(players).forEach(p=>{
+rows.slice(1).forEach(row=>{
+
+const cols=row.split(",");
+
+const nombre=cols[idxNombre];
+const grupo=cols[idxGrupo];
+const hcp=cols[idxHcp];
+
 playersContainer.innerHTML+=`
+
 <div class="playerCard">
-<h3>${p.jugador}</h3>
-<p>Grupo ${p.grupo}</p>
-<p>Juegos Jugados: ${p.jugados}</p>
-<p>Juegos Ganados: ${p.ganados}</p>
-<p>Diferencia: ${p.diff}</p>
-</div>`;
+<h3>${nombre}</h3>
+<p>Grupo ${grupo}</p>
+<p>Handicap ${hcp}</p>
+</div>
+
+`;
+
 });
 
 });
