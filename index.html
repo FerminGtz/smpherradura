@@ -163,48 +163,77 @@ container.innerHTML+=html;
 
 // -------- JUGADORES DESDE OTRO CSV --------
 
+ // -------- JUGADORES DESDE OTRO CSV --------
+
 fetch(playersSheetURL)
 .then(res=>res.text())
 .then(data=>{
 
-try{
-
 const rows=data.trim().split("\n");
 const headers=rows[0].split(",");
 
-// detectar columnas automáticamente
-const idxNombre=headers.findIndex(h=>h.toLowerCase().includes("jugador"));
+// detectar columnas
 const idxGrupo=headers.findIndex(h=>h.toLowerCase().includes("grupo"));
-const idxHcp=headers.findIndex(h=>h.toLowerCase().includes("handicap"));
+const idxNombre=headers.findIndex(h=>h.toLowerCase().includes("jugador"));
+const idxGHIN=headers.findIndex(h=>h.toLowerCase().includes("ghin"));
+const idxEmail=headers.findIndex(h=>h.toLowerCase().includes("correo"));
+const idxTel=headers.findIndex(h=>h.toLowerCase().includes("telefono"));
 
-const playersContainer=document.getElementById("playersContainer");
-playersContainer.innerHTML="";
+let players=[];
 
 rows.slice(1).forEach(row=>{
 
 const cols=row.split(",");
 
-const nombre=cols[idxNombre] || "";
-const grupo=cols[idxGrupo] || "";
-const hcp=cols[idxHcp] || "";
+players.push({
+grupo:cols[idxGrupo] || "",
+nombre:cols[idxNombre] || "",
+ghin:cols[idxGHIN] || "",
+email:cols[idxEmail] || "",
+telefono:cols[idxTel] || ""
+});
 
-playersContainer.innerHTML+=`
+});
 
-<div class="playerCard">
-<h3>${nombre}</h3>
-<p>Grupo ${grupo}</p>
-<p>Handicap ${hcp}</p>
-</div>
+// ordenar jugadores
+players.sort((a,b)=>{
+if(a.grupo!==b.grupo){
+return a.grupo.localeCompare(b.grupo);
+}
+return a.nombre.localeCompare(b.nombre);
+});
 
+const playersContainer=document.getElementById("playersContainer");
+
+let html=`
+<table>
+<tr>
+<th>Grupo</th>
+<th>Jugador</th>
+<th>GHIN</th>
+<th>Email</th>
+<th>Teléfono</th>
+</tr>
 `;
 
+players.forEach(p=>{
+html+=`
+<tr>
+<td>${p.grupo}</td>
+<td>${p.nombre}</td>
+<td>${p.ghin}</td>
+<td>${p.email}</td>
+<td>${p.telefono}</td>
+</tr>
+`;
 });
 
-}catch(e){
-console.log("Error leyendo jugadores:",e);
-}
+html+="</table>";
+
+playersContainer.innerHTML=html;
 
 });
+ 
 
 // noticias golf
 
