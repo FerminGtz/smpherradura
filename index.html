@@ -36,7 +36,6 @@ footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:
 <nav>
 <a href="#" onclick="showTab('leaderboard')">Leaderboard</a>
 <a href="#" onclick="showTab('jugadores')">Jugadores</a>
-<a href="#" onclick="showTab('noticias')">Noticias Golf</a>
 <a href="#" onclick="showTab('contacto')">Contacto</a>
 </nav>
 
@@ -51,13 +50,6 @@ footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:
 <div class="card">
 <h2>Jugadores del Torneo</h2>
 <div id="playersContainer"></div>
-</div>
-</section>
-
-<section id="noticias" class="tab" style="display:none">
-<div class="card">
-<h2>Noticias de Golf (PGA / LIV)</h2>
-<ul id="newsList"></ul>
 </div>
 </section>
 
@@ -161,10 +153,6 @@ container.innerHTML+=html;
 });
 });
 
-// -------- JUGADORES DESDE OTRO CSV --------
-
- // -------- JUGADORES DESDE OTRO CSV --------
-
 fetch(playersSheetURL)
 .then(res=>res.text())
 .then(data=>{
@@ -172,7 +160,6 @@ fetch(playersSheetURL)
 const rows=data.trim().split("\n");
 const headers=rows[0].split(",");
 
-// detectar columnas
 const idxNombre=headers.findIndex(h =>
 h.toLowerCase().includes("nombre") ||
 h.toLowerCase().includes("jugador")
@@ -212,7 +199,6 @@ telefono:cols[idxTel] || ""
 
 });
 
-// ordenar jugadores
 players.sort((a,b)=>{
 if(a.grupo!==b.grupo){
 return a.grupo.localeCompare(b.grupo);
@@ -237,7 +223,6 @@ let grupoAnterior="";
 
 players.forEach(p=>{
 
-// insertar línea en blanco si cambia el grupo
 if(grupoAnterior!=="" && p.grupo!==grupoAnterior){
 html+=`
 <tr>
@@ -259,62 +244,13 @@ html+=`
 grupoAnterior=p.grupo;
 
 });
- 
 
 html+="</table>";
 
 playersContainer.innerHTML=html;
 
 });
- 
 
-// -------- NOTICIAS DE GOLF --------
-
-// -------- NOTICIAS DE GOLF --------
-
-const rss = "https://www.espn.com/espn/rss/golf/news";
-
-fetch("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rss))
-.then(res => res.json())
-.then(data => {
-
-const container = document.getElementById("newsList");
-container.innerHTML = "";
-
-if(!data.items || data.items.length === 0){
-container.innerHTML = "<p>No se encontraron noticias recientes.</p>";
-return;
-}
-
-data.items.slice(0,8).forEach(item => {
-
-const date = new Date(item.pubDate).toLocaleDateString("es-MX");
-
-container.innerHTML += `
-
-<div style="margin-bottom:20px">
-
-<div style="font-size:13px;color:#777">${date}</div>
-
-<a href="${item.link}" target="_blank" style="font-weight:bold">
-${item.title}
-</a>
-
-</div>
-
-`;
-
-});
-
-})
-.catch(err=>{
-console.log("Error noticias:", err);
-document.getElementById("newsList").innerHTML =
-"<p>No se pudieron cargar noticias.</p>";
-});
- 
-// -------- TAB NAVIGATION -------------------------
- 
 function showTab(tabId){
 const tabs=document.querySelectorAll('.tab');
 tabs.forEach(t=>t.style.display='none');
