@@ -86,26 +86,53 @@ const rows=data.trim().split("
 ");
 const headers=rows[0].split(",");
 
-const idxNombre=headers.indexOf("Jugador");
+const idxWinner=headers.indexOf("NombreRes");
+const idxLoser=headers.indexOf("Perdedor");
+const idxWinDiff=headers.indexOf("Diferencia");
+const idxLoseDiff=headers.indexOf("Dif Perdedor");
 const idxGrupo=headers.indexOf("GrupoRes");
-const idxJugados=headers.indexOf("MatchesJugados");
-const idxGanados=headers.indexOf("MatchesGanados");
-const idxDiff=headers.indexOf("DiferenciaNeta");
 
-let groups={};
+let players={};
 
 rows.slice(1).forEach(row=>{
 const cols=row.split(",");
 
-const jugador=cols[idxNombre];
+const winner=cols[idxWinner];
+const loser=cols[idxLoser];
+const winDiff=Number(cols[idxWinDiff]||0);
+const loseDiff=Number(cols[idxLoseDiff]||0);
+
+if(winner){
+if(!players[winner]) players[winner]={jugador:winner,grupo:"",jugados:0,ganados:0,diff:0};
+players[winner].jugados++;
+players[winner].ganados++;
+players[winner].diff+=winDiff;
+}
+
+if(loser){
+if(!players[loser]) players[loser]={jugador:loser,grupo:"",jugados:0,ganados:0,diff:0};
+players[loser].jugados++;
+players[loser].diff-=loseDiff;
+}
+
+});
+
+// asignar grupos
+rows.slice(1).forEach(row=>{
+const cols=row.split(",");
+const winner=cols[idxWinner];
+const loser=cols[idxLoser];
 const grupo=cols[idxGrupo];
-const jugados=cols[idxJugados];
-const ganados=cols[idxGanados];
-const diff=cols[idxDiff];
 
-if(!groups[grupo]) groups[grupo]=[];
+if(winner && players[winner]) players[winner].grupo=grupo;
+if(loser && players[loser] && !players[loser].grupo) players[loser].grupo=grupo;
+});
 
-groups[grupo].push({jugador,jugados,ganados,diff});
+// agrupar
+let groups={};
+Object.values(players).forEach(p=>{
+if(!groups[p.grupo]) groups[p.grupo]=[];
+groups[p.grupo].push(p);
 });
 
 const container=document.getElementById("groupsContainer");
@@ -113,17 +140,16 @@ container.innerHTML="";
 
 Object.keys(groups).sort().forEach(g=>{
 
-// ordenar leaderboard
 const jugadores=groups[g].sort((a,b)=>{
-if(Number(b.ganados)!==Number(a.ganados)) return Number(b.ganados)-Number(a.ganados);
-return Number(b.diff)-Number(a.diff);
+if(b.ganados!==a.ganados) return b.ganados-a.ganados;
+return b.diff-a.diff;
 });
 
 let html=`<div class="groupTitle">Grupo ${g}</div>`;
 html+="<table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>";
 
-jugadores.forEach(p=>{
-const posClass = (i===0)?'firstPlace':(i===1?'secondPlace':'');
+jugadores.forEach((p,i)=>{
+const posClass=(i===0)?'firstPlace':(i===1?'secondPlace':'');
 html+=`<tr class="${posClass}"><td>${i+1}</td><td>${p.jugador}</td><td>${p.jugados}</td><td>${p.ganados}</td><td>${p.diff}</td></tr>`;
 });
 
@@ -131,26 +157,25 @@ html+="</table>";
 container.innerHTML+=html;
 });
 
-// construir tarjetas de jugadores
+// tarjetas jugadores
 const playersContainer=document.getElementById("playersContainer");
 playersContainer.innerHTML="";
 
-Object.keys(groups).forEach(g=>{
-groups[g].forEach(p=>{
+Object.values(players).forEach(p=>{
 playersContainer.innerHTML+=`
 <div class="playerCard">
 <h3>${p.jugador}</h3>
-<p>Grupo ${g}</p>
+<p>Grupo ${p.grupo}</p>
 <p>Juegos Jugados: ${p.jugados}</p>
 <p>Juegos Ganados: ${p.ganados}</p>
 <p>Diferencia: ${p.diff}</p>
 </div>`;
 });
-});
 
 });
 
 // noticias golf
+
 
 const rss="https://www.golfdigest.com/feed";
 
