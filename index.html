@@ -166,12 +166,15 @@ fetch(playersSheetURL)
 .then(res=>res.text())
 .then(data=>{
 
+try{
+
 const rows=data.trim().split("\n");
 const headers=rows[0].split(",");
 
-const idxNombre=headers.indexOf("Jugador");
-const idxGrupo=headers.indexOf("Grupo");
-const idxHcp=headers.indexOf("Handicap");
+// detectar columnas automáticamente
+const idxNombre=headers.findIndex(h=>h.toLowerCase().includes("jugador"));
+const idxGrupo=headers.findIndex(h=>h.toLowerCase().includes("grupo"));
+const idxHcp=headers.findIndex(h=>h.toLowerCase().includes("handicap"));
 
 const playersContainer=document.getElementById("playersContainer");
 playersContainer.innerHTML="";
@@ -180,9 +183,9 @@ rows.slice(1).forEach(row=>{
 
 const cols=row.split(",");
 
-const nombre=cols[idxNombre];
-const grupo=cols[idxGrupo];
-const hcp=cols[idxHcp];
+const nombre=cols[idxNombre] || "";
+const grupo=cols[idxGrupo] || "";
+const hcp=cols[idxHcp] || "";
 
 playersContainer.innerHTML+=`
 
@@ -195,6 +198,10 @@ playersContainer.innerHTML+=`
 `;
 
 });
+
+}catch(e){
+console.log("Error leyendo jugadores:",e);
+}
 
 });
 
