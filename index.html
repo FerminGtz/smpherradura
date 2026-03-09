@@ -270,48 +270,36 @@ playersContainer.innerHTML=html;
 
 // -------- NOTICIAS DE GOLF --------
 
+
 // -------- NOTICIAS DE GOLF --------
 
-const rssURL = "https://golf.com/feed/";
+const rss = "https://news.google.com/rss/search?q=golf+pga+tour&hl=es-419&gl=MX&ceid=MX:es";
 
-fetch(rssURL)
-.then(response => response.text())
-.then(str => {
-
-const parser = new DOMParser();
-const xml = parser.parseFromString(str, "text/xml");
-
-const items = xml.querySelectorAll("item");
+fetch("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(rss))
+.then(res => res.json())
+.then(data => {
 
 const container = document.getElementById("newsList");
 
 container.innerHTML = "";
 
-if(items.length === 0){
+if(!data.items || data.items.length === 0){
 container.innerHTML = "<p>No se encontraron noticias recientes.</p>";
 return;
 }
 
-items.forEach((item,i)=>{
+data.items.slice(0,8).forEach(item => {
 
-if(i>=8) return;
-
-const title = item.querySelector("title")?.textContent || "";
-const link = item.querySelector("link")?.textContent || "";
-const date = item.querySelector("pubDate")?.textContent || "";
-
-const formattedDate = date
-? new Date(date).toLocaleDateString("es-MX")
-: "";
+const date = new Date(item.pubDate).toLocaleDateString("es-MX");
 
 container.innerHTML += `
 
 <div style="margin-bottom:20px">
 
-<div style="font-size:13px;color:#777">${formattedDate}</div>
+<div style="font-size:13px;color:#777">${date}</div>
 
-<a href="${link}" target="_blank" style="font-weight:bold">
-${title}
+<a href="${item.link}" target="_blank" style="font-weight:bold">
+${item.title}
 </a>
 
 </div>
@@ -321,12 +309,11 @@ ${title}
 });
 
 })
-.catch(error=>{
-console.log("Error noticias:",error);
+.catch(err=>{
+console.log("Error noticias:", err);
 document.getElementById("newsList").innerHTML =
 "<p>No se pudieron cargar noticias.</p>";
 });
- 
  
 // -------- TAB NAVIGATION -------------------------
  
