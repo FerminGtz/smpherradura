@@ -270,9 +270,10 @@ playersContainer.innerHTML=html;
 
 // -------- NOTICIAS DE GOLF --------
 
+// -------- NOTICIAS DE GOLF --------
 
-const rss="https://news.google.com/rss/search?q=PGA%20Tour%20%7C%20LIV%20Golf%20%7C%20Masters%20Golf%20%7C%20US%20Open%20Golf&hl=es-419&gl=MX&ceid=MX:es";
- 
+const rss="https://news.google.com/rss/search?q=golf+pga+tour&hl=es-419&gl=MX&ceid=MX:es";
+
 fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(rss))
 .then(res=>res.text())
 .then(str=>{
@@ -286,20 +287,28 @@ const container=document.getElementById("newsList");
 
 container.innerHTML="";
 
+if(items.length===0){
+container.innerHTML="<p>No se encontraron noticias recientes.</p>";
+return;
+}
+
 items.forEach((item,i)=>{
 
 if(i>=8) return;
 
-const title=item.querySelector("title").textContent;
-const link=item.querySelector("link").textContent;
-const date=new Date(item.querySelector("pubDate").textContent)
-.toLocaleDateString("es-MX");
+const title=item.querySelector("title")?.textContent || "";
+const link=item.querySelector("link")?.textContent || "";
+const date=item.querySelector("pubDate")?.textContent || "";
+
+const formattedDate=date
+? new Date(date).toLocaleDateString("es-MX")
+: "";
 
 container.innerHTML+=`
 
 <div style="margin-bottom:20px">
 
-<div style="font-size:13px;color:#777">${date}</div>
+<div style="font-size:13px;color:#777">${formattedDate}</div>
 
 <a href="${link}" target="_blank" style="font-weight:bold">
 ${title}
@@ -314,6 +323,7 @@ ${title}
 })
 .catch(err=>{
 console.log("Error noticias:",err);
+document.getElementById("newsList").innerHTML="No se pudieron cargar noticias.";
 });
  
  
