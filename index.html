@@ -253,6 +253,8 @@ const idxWinDiff=headers.indexOf("Diferencia");
 
 const idxLoseDiff=headers.indexOf("Dif Perdedor");
 
+const idxFecha=headers.indexOf("Fecha");
+  
 const idxGrupo=headers.indexOf("GrupoRes");
 
 let players={};
@@ -393,6 +395,8 @@ let html=`<table>
 
 <tr>
 
+<th>Fecha</th>
+
 <th>Grupo</th>
 
 <th>Ganador</th>
@@ -409,6 +413,8 @@ rows.slice(1).forEach(row=>{
 const cols=row.split(",");
 
 html+=`<tr>
+
+<td>${cols[idxFecha]}</td>
 
 <td>${cols[idxGrupo]}</td>
 
