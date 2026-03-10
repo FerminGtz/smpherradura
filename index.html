@@ -290,9 +290,7 @@ const winner=cols[idxWinner];
 
 const loser=cols[idxLoser];
 
-const winDiff=Number(cols[idxWinDiff]||0);
-  
-const loseDiff=Number(cols[idxLoseDiff] || winDiff);
+const winDiff = Number(cols[idxWinDiff] || 0);
 
 
 if(winner){
@@ -314,7 +312,7 @@ if(!players[loser]) players[loser]={jugador:loser,grupo:"",jugados:0,ganados:0,d
 
 players[loser].jugados++;
 
-players[loser].diff+=loseDiff;
+players[loser].diff-=loseDiff;
 
 }
 
