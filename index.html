@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-/**** Esta version funciona bien Leaderboard , Jugadores, Contacto , resultados lo muestra bien solo falta agregar la forma para captura de resultados /
+/**** Esta version funciona bien Leaderboard , Jugadores, Contacto , resultados lo muestra bien solo falta agregar la forma para captura de resultados ****/
 
 <html lang="es">
 <head>
@@ -291,8 +291,8 @@ const winner=cols[idxWinner];
 const loser=cols[idxLoser];
 
 const winDiff=Number(cols[idxWinDiff]||0);
-
-const loseDiff=Number(cols[idxLoseDiff]||0);
+  
+const loseDiff=Number(cols[idxLoseDiff] || winDiff);
 
 
 if(winner){
@@ -314,7 +314,7 @@ if(!players[loser]) players[loser]={jugador:loser,grupo:"",jugados:0,ganados:0,d
 
 players[loser].jugados++;
 
-players[loser].diff-=loseDiff;
+players[loser].diff+=loseDiff;
 
 }
 
@@ -426,8 +426,9 @@ diff:cols[idxDiff] || ""
 
 /* ordenar resultados por fecha más reciente */
 
-results.sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
-
+results.sort((a,b)=>{
+return new Date(b.fecha || 0) - new Date(a.fecha || 0);
+});
 const container=document.getElementById("resultsContainer");
 
 let html=`<table>
