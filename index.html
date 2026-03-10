@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Senior Match Play La Herradura</title>
-
 <style>
     body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f7}
     header{background:#0b3d2e;color:white;padding:20px;text-align:center}
@@ -20,19 +19,13 @@
     .firstPlace{background:#e8f8f0;font-weight:bold}
     .secondPlace{background:#fdf5e6}
     footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:40px}
-    
-    /* ESTILOS NOTICIAS */
     .news-card { border-left: 5px solid #145a32; margin-bottom: 20px; padding: 15px; background: #fff; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .news-tag { background: #145a32; color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; text-transform: uppercase; }
     .news-date { color: #888; font-size: 12px; float: right; }
     .news-content { margin-top: 10px; line-height: 1.5; color: #333; }
-    .curiosity-box { background: #f0f7f4; padding: 10px; border-radius: 6px; margin-top: 10px; font-style: italic; border: 1px dashed #145a32; }
-
     .resultBtn{display:inline-block;background:#145a32;color:white;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold;margin-bottom:20px; border: none; cursor: pointer;}
-    .resultBtn:hover{background:#0b3d2e;}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -50,22 +43,13 @@
 </nav>
 
 <section id="noticias" class="tab">
-    <div class="card" id="newsContainer">
+    <div class="card">
         <h2>Crónicas y Noticias del Green</h2>
         <div class="news-card">
             <span class="news-tag">SMP 2025-2026</span>
             <span class="news-date">10 de Marzo, 2026</span>
             <div class="news-content">
-                <strong>Análisis de Cierre: La Importancia de la Diferencia Neta</strong><br>
-                Al entrar en la segunda fase, el Leaderboard nos muestra que no solo importa ganar, sino defender cada hoyo. Casos como el de Fermín Gutiérrez en el Grupo 4 demuestran que la Diferencia Neta (hoyos ganados menos hoyos perdidos) será el juez final para los desempates. ¡Cada putt cuenta!
-            </div>
-        </div>
-        <div class="news-card">
-            <span class="news-tag">LIV GOLF</span>
-            <span class="news-date">10 de Marzo, 2026</span>
-            <div class="news-content">
-                <strong>Carlos Ortiz y su histórica ronda de 60</strong><br>
-                El tapatío Carlos Ortiz sigue encendido tras su espectacular actuación en Hong Kong. Tirar un 60 (-10) es una hazaña que motiva a todo el golf mexicano. Junto a Abraham Ancer, Ortiz pone la vara muy alta para lo que veremos en el LIV Golf Mexico en abril.
+                <strong>Ajuste de Leaderboard:</strong> Estamos recalculando las Diferencias Netas para asegurar que cada hoyo perdido se reste correctamente del total. ¡La transparencia es clave en el Match Play!
             </div>
         </div>
     </div>
@@ -78,47 +62,15 @@
     </div>
 </section>
 
-<section id="jugadores" class="tab" style="display:none">
-    <div class="card">
-        <h2>Jugadores del Torneo</h2>
-        <div id="playersContainer"></div>
-    </div>
-</section>
-
-<section id="resultados" class="tab" style="display:none">
-    <div class="card">
-        <h2>Resultados del Torneo</h2>
-        <a href="LINK_DE_TU_GOOGLE_FORM" target="_blank" class="resultBtn">➕ Capturar Resultado</a>
-        <div id="resultsContainer"></div>
-    </div>
-</section>
-
-<section id="contacto" class="tab" style="display:none">
-    <div class="card">
-        <h2>Contacto</h2>
-        <form action="https://formsubmit.co/smpherradura@gmail.com" method="POST">
-            <input type="text" name="name" placeholder="Tu nombre" required style="width:100%; padding:10px; margin-top:5px; border-radius:6px; border:1px solid #ccc;">
-            <input type="email" name="email" placeholder="Tu correo" required style="width:100%; padding:10px; margin-top:15px; border-radius:6px; border:1px solid #ccc;">
-            <textarea name="message" placeholder="Mensaje" required style="width:100%; padding:10px; margin-top:15px; border-radius:6px; border:1px solid #ccc; min-height:100px;"></textarea>
-            <button type="submit" class="resultBtn" style="margin-top:15px">Enviar Mensaje</button>
-        </form>
-    </div>
-</section>
-
-<footer>Senior Match Play La Herradura</footer>
-
 <script>
 const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
-const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=762416889&single=true&output=csv";
 
 function showTab(tabId){
     const tabs=document.querySelectorAll('.tab');
     tabs.forEach(t=>t.style.display='none');
     document.getElementById(tabId).style.display='block';
-    window.scrollTo(0,0);
 }
 
-/* LÓGICA DE CÁLCULO CORREGIDA */
 fetch(sheetURL)
 .then(res=>res.text())
 .then(data=>{
@@ -128,43 +80,38 @@ fetch(sheetURL)
     const idxWinner=headers.indexOf("NombreRes");
     const idxLoser=headers.indexOf("Perdedor");
     const idxWinDiff=headers.indexOf("Diferencia");
-    const idxLoseDiff=headers.indexOf("Dif Perdedor"); // Columna donde guardas los hoyos en contra
+    const idxLoseDiff=headers.indexOf("Dif Perdedor");
     const idxGrupo=headers.indexOf("GrupoRes");
-    const idxFecha=headers.indexOf("Fecha");
 
     let players={};
-    let resultsList=[];
 
     rows.slice(1).forEach(row=>{
         const cols=row.split(",");
-        const winner=cols[idxWinner];
-        const loser=cols[idxLoser];
-        const g=cols[idxGrupo];
+        // Usamos trim() para evitar problemas con espacios ocultos en los nombres
+        const winner = cols[idxWinner] ? cols[idxWinner].trim() : null;
+        const loser = cols[idxLoser] ? cols[idxLoser].trim() : null;
+        const g = cols[idxGrupo] ? cols[idxGrupo].trim() : "";
         
-        // Usamos Math.abs para asegurar que los valores sean positivos antes de operar
         const valWin = Math.abs(Number(cols[idxWinDiff] || 0));
         const valLose = Math.abs(Number(cols[idxLoseDiff] || 0));
 
-        // 1. Procesar al Ganador
-        if(winner){
+        if(winner && winner !== ""){
             if(!players[winner]) players[winner]={jugador:winner,grupo:g,jugados:0,ganados:0,diff:0};
             players[winner].jugados++;
             players[winner].ganados++;
             players[winner].diff += valWin; 
         }
 
-        // 2. Procesar al Perdedor (Aquí es donde restamos para que el 13 de Fermín baje)
-        if(loser){
+        if(loser && loser !== ""){
+            // Si el perdedor aún no existe en el objeto, lo creamos
             if(!players[loser]) players[loser]={jugador:loser,grupo:g,jugados:0,ganados:0,diff:0};
             players[loser].jugados++;
+            // RESTA CRUCIAL: Aquí es donde el 13 de Fermín debe bajar
             players[loser].diff -= valLose; 
         }
-
-        if(winner) resultsList.push({fecha:cols[idxFecha], grupo:g, ganador:winner, perdedor:loser, diff:valWin});
     });
 
     renderLeaderboard(players);
-    renderResults(resultsList);
 });
 
 function renderLeaderboard(playersData){
@@ -186,28 +133,6 @@ function renderLeaderboard(playersData){
         container.innerHTML+=html+"</table>";
     });
 }
-
-function renderResults(results){
-    results.sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
-    const container=document.getElementById("resultsContainer");
-    let html=`<table><tr><th>Fecha</th><th>Grupo</th><th>Ganador</th><th>Perdedor</th><th>Dif</th></tr>`;
-    results.forEach(r=>{
-        html+=`<tr><td>${r.fecha}</td><td>${r.grupo}</td><td>${r.ganador}</td><td>${r.perdedor}</td><td>${r.diff}</td></tr>`;
-    });
-    container.innerHTML=html+"</table>";
-}
-
-/* JUGADORES */
-fetch(playersSheetURL).then(res=>res.text()).then(data=>{
-    const rows=data.trim().split("\n");
-    const container=document.getElementById("playersContainer");
-    let html=`<table><tr><th>Grupo</th><th>Jugador</th><th>GHIN</th><th>Email</th><th>Tel</th></tr>`;
-    rows.slice(1).forEach(row=>{
-        const c=row.split(",");
-        html+=`<tr><td>${c[1]||""}</td><td>${c[0]||""}</td><td>${c[2]||""}</td><td>${c[3]||""}</td><td>${c[4]||""}</td></tr>`;
-    });
-    container.innerHTML=html+"</table>";
-});
 </script>
 </body>
 </html>
