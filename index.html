@@ -1,177 +1,150 @@
 <!DOCTYPE html>
-/* Versión 6.57*/
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Senior Match Play La Herradura</title>
-    <style>
-        body{font-family: 'Segoe UI', Arial, sans-serif; margin:0; background:#f4f6f7; color: #333;}
-        header{background:#0b3d2e; color:white; padding:25px; text-align:center; border-bottom: 4px solid #d4af37;}
-        header img{width:120px; margin-bottom:10px;}
-        nav{background:#145a32; padding:10px; text-align:center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.3);}
-        nav a{color:white; margin:0 12px; text-decoration:none; font-weight:bold; cursor: pointer; font-size: 14px; text-transform: uppercase;}
-        nav a:hover{color: #d4af37;}
-        section{padding:20px; max-width:1100px; margin:auto; min-height: 70vh;}
-        .card{background:white; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-bottom:30px;}
-        h2{color: #0b3d2e; border-bottom: 2px solid #eee; padding-bottom: 10px;}
-        table{width:100%; border-collapse:collapse; margin-top:15px; background: white;}
-        th,td{padding:12px; border-bottom:1px solid #eee; text-align:center;}
-        th{background:#0b3d2e; color:white; text-transform: uppercase; font-size: 12px;}
-        .groupTitle{margin-top:40px; font-size:24px; color:#145a32; font-weight: bold; background: #e8f8f0; padding: 10px; border-radius: 5px;}
-        .firstPlace{background:#fff9c4; font-weight:bold; color: #827717;} /* Dorado suave */
-        .secondPlace{background:#f5f5f5; font-weight:bold;}
-        footer{background:#0b3d2e; color:white; text-align:center; padding:30px; margin-top:50px; font-size: 13px;}
-        .loading { text-align: center; padding: 40px; font-style: italic; color: #666; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Senior Match Play La Herradura</title>
+<style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f7}
+    header{background:#0b3d2e;color:white;padding:20px;text-align:center}
+    header img{width:140px;margin-bottom:10px}
+    nav{background:#145a32;padding:10px;text-align:center;position: sticky; top: 0; z-index: 1000;}
+    nav a{color:white;margin:0 15px;text-decoration:none;font-weight:bold; cursor: pointer;}
+    section{padding:20px;max-width:1200px;margin:auto}
+    .card{background:white;padding:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-bottom:30px}
+    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+    th,td{padding:8px;border-bottom:1px solid #ddd;text-align:center}
+    th{background:#0b3d2e;color:white;}
+    .groupTitle{margin-top:30px;font-size:22px;color:#145a32; font-weight: bold;}
+    .firstPlace{background:#e8f8f0;font-weight:bold}
+    .secondPlace{background:#fdf5e6}
+    footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:40px}
+</style>
 </head>
 <body>
 
 <header>
     <img src="SMP Circular.png" alt="Logo SMP">
     <h1>Senior Match Play La Herradura</h1>
-    <p>Convivencia, Competencia e Integración</p>
+    <p>Torneo de Convivencia, Competencia e Integración</p>
 </header>
 
 <nav>
-    <a onclick="showTab('noticias')">Noticias</a>
     <a onclick="showTab('leaderboard')">Leaderboard</a>
-    <a onclick="showTab('resultados')">Resultados</a>
+    <a onclick="showTab('jugadores')">Jugadores</a>
+    <a onclick="showTab('contacto')">Contacto</a>
 </nav>
 
-<section id="noticias" class="tab">
+<section id="leaderboard" class="tab">
     <div class="card">
-        <h2>Crónicas del Green</h2>
-        <p>Bienvenido al sistema de resultados en vivo. Selecciona "Leaderboard" para ver las posiciones actuales de cada grupo.</p>
+        <h2>Leaderboard por Grupo</h2>
+        <div id="groupsContainer">Cargando posiciones...</div>
     </div>
 </section>
 
-<section id="leaderboard" class="tab" style="display:none">
+<section id="jugadores" class="tab" style="display:none">
     <div class="card">
-        <h2>Estado de los Grupos</h2>
-        <div id="groupsContainer" class="loading">Iniciando sincronización con Google Sheets...</div>
+        <h2>Lista de Participantes</h2>
+        <div id="jugadoresLista">Cargando lista...</div>
     </div>
 </section>
 
-<section id="resultados" class="tab" style="display:none">
+<section id="contacto" class="tab" style="display:none">
     <div class="card">
-        <h2>Historial de Partidos</h2>
-        <div id="resultsContainer" class="loading">Cargando partidos...</div>
+        <h2>Contacto</h2>
+        <p>Comité Organizador - Senior Match Play La Herradura</p>
     </div>
 </section>
-
-<footer>
-    <p>&copy; 2026 Senior Match Play La Herradura | Monterrey, México</p>
-</footer>
 
 <script>
-// URL de tu publicación en la web (asegúrate que sea CSV)
+// Asegúrate de que esta URL sea la de la hoja de "PARTICIPANTES"
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
 
-function showTab(tabId) {
-    document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
-    document.getElementById(tabId).style.display = 'block';
+function showTab(tabId){
+    const tabs=document.querySelectorAll('.tab');
+    tabs.forEach(t=>t.style.display='none');
+    document.getElementById(tabId).style.display='block';
 }
 
-async function cargarDatos() {
-    try {
-        const response = await fetch(sheetURL);
-        const text = await response.text();
-        
-        // DETECCIÓN DE SEPARADOR (Célebre problema en Excel/Sheets latinos)
-        const delimiter = text.indexOf(';') > -1 && text.indexOf(';') < text.indexOf('\n') ? ';' : ',';
-        
-        const rows = text.split(/\r?\n/).map(row => row.split(delimiter).map(cell => cell.replace(/"/g, '').trim()));
-        const headers = rows[0];
-
-        // Mapeo dinámico de columnas (para que no falle si cambian de orden)
-        const getIdx = (name) => headers.findIndex(h => h.toLowerCase().includes(name.toLowerCase()));
-        
-        const idxWinner = getIdx("nombreres");
-        const idxLoser  = getIdx("perdedor");
-        const idxWinDif = getIdx("diferencia");
-        const idxLosDif = getIdx("dif perdedor");
-        const idxGrupo  = getIdx("grupores");
-        const idxFecha  = getIdx("fecha");
-
-        if (idxWinner === -1) throw new Error("No se encontraron las columnas necesarias en el CSV.");
-
-        let players = {};
-        let matches = [];
-
-        // Procesar filas (saltando encabezado)
-        for (let i = 1; i < rows.length; i++) {
-            const row = rows[i];
-            if (!row[idxWinner] || row[idxWinner].length < 2) continue;
-
-            const winName = row[idxWinner];
-            const losName = row[idxLoser];
-            const grupo   = row[idxGrupo] || "A";
-            const dWin    = Math.abs(parseFloat(row[idxWinDif])) || 0;
-            const dLos    = Math.abs(parseFloat(row[idxLosDif])) || 0;
-            const fecha   = row[idxFecha] || "";
-
-            // Guardar Match
-            matches.push({ fecha, grupo, winName, losName, diff: dWin });
-
-            // Actualizar Ganador
-            if (!players[winName]) players[winName] = { nombre: winName, grupo, jj: 0, jg: 0, dif: 0 };
-            players[winName].jj++;
-            players[winName].jg++;
-            players[winName].dif += dWin;
-
-            // Actualizar Perdedor
-            if (losName) {
-                if (!players[losName]) players[losName] = { nombre: losName, grupo, jj: 0, jg: 0, dif: 0 };
-                players[losName].jj++;
-                players[losName].dif -= dLos;
-            }
-        }
-
-        renderAll(players, matches);
-
-    } catch (error) {
-        console.error(error);
-        document.getElementById("groupsContainer").innerHTML = "Error: " + error.message;
-    }
-}
-
-function renderAll(players, matches) {
-    // 1. RENDER LEADERBOARD
-    const container = document.getElementById("groupsContainer");
-    container.innerHTML = "";
+fetch(sheetURL)
+.then(res => res.text())
+.then(data => {
+    // Detectar si el separador es coma o punto y coma
+    const delimiter = data.indexOf(';') > -1 && data.indexOf(';') < data.indexOf('\n') ? ';' : ',';
+    const rows = data.trim().split("\n").map(row => row.split(delimiter).map(cell => cell.replace(/"/g, '').trim()));
     
-    const groups = {};
-    Object.values(players).forEach(p => {
-        if (!groups[p.grupo]) groups[p.grupo] = [];
-        groups[p.grupo].push(p);
+    const headers = rows[0];
+
+    // Localización de columnas según tus indicaciones
+    const idxNombre = headers.findIndex(h => h.toLowerCase().includes("nombre"));
+    const idxGrupo  = headers.findIndex(h => h.toLowerCase().includes("grupo"));
+    const idxJJ     = headers.findIndex(h => h === "JJ");
+    const idxGanados = headers.findIndex(h => h.toLowerCase() === "ganados");
+    const idxDif    = headers.findIndex(h => h.toLowerCase().includes("dif neta"));
+
+    let playersByGroup = {};
+
+    rows.slice(1).forEach(row => {
+        const nombre = row[idxNombre];
+        const grupo = row[idxGrupo] || "Sin Grupo";
+        
+        if (nombre && nombre.length > 2) {
+            const pData = {
+                nombre: nombre,
+                jj: parseInt(row[idxJJ]) || 0,
+                ganados: parseInt(row[idxGanados]) || 0,
+                dif: parseFloat(row[idxDif]) || 0
+            };
+
+            if (!playersByGroup[grupo]) playersByGroup[grupo] = [];
+            playersByGroup[grupo].push(pData);
+        }
     });
 
+    renderLeaderboard(playersByGroup);
+})
+.catch(err => {
+    console.error(err);
+    document.getElementById("groupsContainer").innerHTML = "Error al conectar con los datos.";
+});
+
+function renderLeaderboard(groups) {
+    const container = document.getElementById("groupsContainer");
+    container.innerHTML = "";
+
+    // Ordenar los nombres de los grupos (A, B, C...)
     Object.keys(groups).sort().forEach(gName => {
-        const sortedPlayers = groups[gName].sort((a, b) => b.jg - a.jg || b.dif - a.dif);
-        let html = `<div class="groupTitle">Grupo ${gName}</div>
-                    <table><thead><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr></thead><tbody>`;
+        // Ordenar jugadores: 1. Ganados (JG), 2. Diferencia Neta
+        const sorted = groups[gName].sort((a, b) => b.ganados - a.ganados || b.dif - a.dif);
         
-        sortedPlayers.forEach((p, i) => {
-            const cl = i === 0 ? 'firstPlace' : (i === 1 ? 'secondPlace' : '');
-            html += `<tr class="${cl}"><td>${i+1}</td><td>${p.nombre}</td><td>${p.jj}</td><td>${p.jg}</td><td>${p.dif}</td></tr>`;
+        let html = `<div class="groupTitle">Grupo ${gName}</div>
+                    <table>
+                        <thead>
+                            <tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif Neta</th></tr>
+                        </thead>
+                        <tbody>`;
+        
+        sorted.forEach((p, i) => {
+            const posClass = (i === 0) ? 'firstPlace' : (i === 1 ? 'secondPlace' : '');
+            html += `<tr class="${posClass}">
+                        <td>${i + 1}</td>
+                        <td>${p.nombre}</td>
+                        <td>${p.jj}</td>
+                        <td>${p.ganados}</td>
+                        <td>${p.dif > 0 ? '+' + p.dif : p.dif}</td>
+                    </tr>`;
         });
         container.innerHTML += html + "</tbody></table>";
     });
 
-    // 2. RENDER RESULTADOS
-    const resContainer = document.getElementById("resultsContainer");
-    let resHtml = `<table><thead><tr><th>Fecha</th><th>Grupo</th><th>Ganador</th><th>Perdedor</th><th>Resultado</th></tr></thead><tbody>`;
-    
-    matches.reverse().forEach(m => {
-        resHtml += `<tr><td>${m.fecha}</td><td>${m.grupo}</td><td style="font-weight:bold; color:green">${m.winName}</td><td>${m.losName}</td><td>${m.diff} up</td></tr>`;
-    });
-    resContainer.innerHTML = resHtml + "</tbody></table>";
+    // Llenar también la pestaña de jugadores por si acaso
+    document.getElementById("jugadoresLista").innerHTML = "Lista actualizada desde la nube.";
 }
-
-// Arrancar proceso
-cargarDatos();
 </script>
+
+<footer>
+    <p>&copy; 2026 Senior Match Play La Herradura</p>
+</footer>
 
 </body>
 </html>
