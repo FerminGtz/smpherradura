@@ -71,56 +71,64 @@ function showTab(tabId){
     document.getElementById(tabId).style.display='block';
 }
 
+/* LEADERBOARD CORREGIDO V4 (REEMPLAZA TODO TU FETCH ANTERIOR) */
 fetch(sheetURL)
 .then(res=>res.text())
 .then(data=>{
-    const rows=data.trim().split("\n");
-    const headers=rows[0].split(",");
+    const rows = data.trim().split("\n");
+    // Limpieza de encabezados para evitar errores de Google Sheets
+    const headers = rows[0].split(",").map(h => h.trim()); 
     
-    const idxWinner=headers.indexOf("NombreRes");
-    const idxLoser=headers.indexOf("Perdedor");
-    const idxWinDiff=headers.indexOf("Diferencia");
-    const idxLoseDiff=headers.indexOf("Dif Perdedor");
-    const idxGrupo=headers.indexOf("GrupoRes");
+    // Localizamos las columnas por contenido (más seguro)
+    const idxWinner = headers.findIndex(h => h.toLowerCase().includes("nombreres"));
+    const idxLoser = headers.findIndex(h => h.toLowerCase().includes("perdedor"));
+    const idxWinDiff = headers.findIndex(h => h.toLowerCase().includes("diferencia"));
+    const idxLoseDiff = headers.findIndex(h => h.toLowerCase().includes("dif perdedor"));
+    const idxGrupo = headers.findIndex(h => h.toLowerCase().includes("grupores"));
 
-    let players={};
+    let players = {};
 
-    rows.slice(1).forEach(row=>{
-        const cols=row.split(",");
-        // Usamos trim() para evitar problemas con espacios ocultos en los nombres
-        const winner = cols[idxWinner] ? cols[idxWinner].trim() : null;
-        const loser = cols[idxLoser] ? cols[idxLoser].trim() : null;
-        const g = cols[idxGrupo] ? cols[idxGrupo].trim() : "";
+    rows.slice(1).forEach((row, index) => {
+        const cols = row.split(",").map(c => c.trim());
         
-        const valWin = Math.abs(Number(cols[idxWinDiff] || 0));
-        const valLose = Math.abs(Number(cols[idxLoseDiff] || 0));
+        const winner = cols[idxWinner];
+        const loser = cols[idxLoser];
+        const g = cols[idxGrupo] || "S/G";
+        
+        const valWin = Math.abs(parseFloat(cols[idxWinDiff]) || 0);
+        const valLose = Math.abs(parseFloat(cols[idxLoseDiff]) || 0);
 
-        if(winner && winner !== ""){
-            if(!players[winner]) players[winner]={jugador:winner,grupo:g,jugados:0,ganados:0,diff:0};
+        // REGISTRO DE GANADOR
+        if(winner && winner.length > 2){
+            if(!players[winner]) players[winner] = {jugador:winner, grupo:g, jugados:0, ganados:0, diff:0};
             players[winner].jugados++;
             players[winner].ganados++;
-            players[winner].diff += valWin; 
+            players[winner].diff += valWin;
         }
 
-        if(loser && loser !== ""){
-            // Si el perdedor aún no existe en el objeto, lo creamos
-            if(!players[loser]) players[loser]={jugador:loser,grupo:g,jugados:0,ganados:0,diff:0};
+        // REGISTRO DE PERDEDOR (Forzando la resta)
+        if(loser && loser.length > 2){
+            if(!players[loser]) players[loser] = {jugador:loser, grupo:g, jugados:0, ganados:0, diff:0};
             players[loser].jugados++;
-            // RESTA CRUCIAL: Aquí es donde el 13 de Fermín debe bajar
-            players[loser].diff -= valLose; 
+            players[loser].diff -= valLose;
+            
+            // LOG PARA MAC (Ver en Command+Option+J)
+            if(loser.toLowerCase().includes("ferm")) {
+                console.log(`%c Fila ${index}: Restando ${valLose} a ${loser}. Nueva dif: ${players[loser].diff}`, "color: red; font-weight: bold;");
+            }
         }
     });
 
+    // Llamamos a las funciones de dibujo (render)
     renderLeaderboard(players);
-});
-
-function renderLeaderboard(playersData){
-    let groups={};
-    Object.values(playersData).forEach(p=>{
-        if(!groups[p.grupo]) groups[p.grupo]=[];
-        groups[p.grupo].push(p);
+    // Si tienes la lista de resultados, la generamos también
+    const resultsList = rows.slice(1).map(row => {
+        const cols = row.split(",");
+        return {fecha:cols[headers.indexOf("Fecha")], grupo:cols[idxGrupo], ganador:cols[idxWinner], perdedor:cols[idxLoser], diff:cols[idxWinDiff]};
     });
-
+    renderResults(resultsList);
+});
+    
     const container=document.getElementById("groupsContainer");
     container.innerHTML="";
     Object.keys(groups).sort().forEach(g=>{
