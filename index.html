@@ -97,7 +97,7 @@ form textarea{min-height:120px;resize:vertical;}
         <h2 id="resTitulo">Resultados del Torneo</h2>
         
         <div id="resetFilterContainer" style="display:none; margin-bottom: 15px;">
-            <button onclick="verTodosLosResultados()" class="resultBtn" style="background: #8e44ad;">🔙 Ver Todos los Resultados</button>
+            <button onclick="regresarAJugadores()" class="resultBtn" style="background: #2e86de;">🔙 Regresar a Jugadores</button>
         </div>
 
         <a href="TU_LINK_DE_GOOGLE_FORMS" id="btnAgregarRes" target="_blank" class="resultBtn">
@@ -149,7 +149,7 @@ form textarea{min-height:120px;resize:vertical;}
 const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
 const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=762416889&single=true&output=csv";
 
-let allMatches = []; // Variable global para guardar los resultados
+let allMatches = []; 
 
 function showTab(tabId){
     const tabs = document.querySelectorAll('.tab');
@@ -158,7 +158,6 @@ function showTab(tabId){
     window.scrollTo(0,0);
 }
 
-/* FILTRAR JUEGOS POR JUGADOR */
 function filtrarPorJugador(nombre) {
     const filtrados = allMatches.filter(m => 
         m.ganador.toLowerCase().trim() === nombre.toLowerCase().trim() || 
@@ -173,11 +172,13 @@ function filtrarPorJugador(nombre) {
     showTab('resultados');
 }
 
-function verTodosLosResultados() {
+// Nueva función que limpia el filtro y regresa a la pestaña de Jugadores
+function regresarAJugadores() {
     document.getElementById('resTitulo').innerText = "Resultados del Torneo";
     document.getElementById('resetFilterContainer').style.display = 'none';
     document.getElementById('btnAgregarRes').style.display = 'inline-block';
-    renderTableResultados(allMatches);
+    renderTableResultados(allMatches); // Resetear a la lista completa internamente
+    showTab('jugadores'); // Cambiar de pestaña
 }
 
 function renderTableResultados(dataArray) {
