@@ -198,11 +198,7 @@ function mostrarNoticiasManuales(datosNoticias) {
         // PASO B: Convertimos saltos de línea en <br>
         let relatoConSaltos = relatoLimpio.replace(/(\r\n|\n|\r)/g, '<br>');
 
-        // PASO C (EL PLAN B): Si el texto sigue siendo un solo bloque (no hay <br>), 
-        // forzamos un salto después de puntos específicos si el texto es muy largo.
-        if (!relatoConSaltos.includes('<br>')) {
-            relatoConSaltos = relatoConSaltos.replace(/\. /g, '.<br><br>');
-        }
+        
 
         htmlNoticias += `
         <div class="news-card" style="border-left: 5px solid ${color}; margin-bottom: 30px; padding: 25px; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
