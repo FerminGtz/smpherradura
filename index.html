@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-/**** Version respuesta mas amplia ****/
+/**** Version con Radar de Resultados Integrado ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -29,6 +29,9 @@
     .news-content { line-height: 1.6; color: #333; font-size: 15px; }
     .pos-diff { color: #27ae60; font-weight: bold; }
     .neg-diff { color: #c0392b; font-weight: bold; }
+    
+    /* Transición suave para el botón del Radar */
+    #btnAgregarRes { transition: background-color 0.3s ease; }
 </style>
 </head>
 <body>
@@ -67,7 +70,12 @@
         <div id="resetFilterContainer" style="display:none; margin-bottom: 15px;">
             <button onclick="regresarAOrigen()" class="resultBtn" style="background: #2e86de;">🔙 Regresar</button>
         </div>
-        <a href="TU_LINK_DE_GOOGLE_FORMS" id="btnAgregarRes" target="_blank" class="resultBtn">➕ Agregar Resultado</a>
+        
+        <button id="btnAgregarRes" class="resultBtn" onclick="toggleRadar()">➕ Agregar Resultado</button>
+        
+        <div id="radarContainer" style="display:none; margin-bottom: 25px; text-align: center;">
+            <iframe src="Thttps://script.google.com/macros/s/AKfycbymJ1kajgL92yj3Fg_dXlO46yjTdWwvsiYvsZND4cAuc11MBWWJtbs5DhdsWqe9zReyig/exec" width="100%" height="650px" frameborder="0" style="border-radius: 10px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 380px; background: #fff;"></iframe>
+        </div>
         <div id="resultsContainer">Cargando resultados...</div>
     </div>
 </section>
@@ -104,6 +112,21 @@ function showTab(tabId){
     window.scrollTo(0,0);
 }
 
+// Función nueva para desplegar/ocultar el Radar de Resultados
+function toggleRadar() {
+    const container = document.getElementById('radarContainer');
+    const btn = document.getElementById('btnAgregarRes');
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        btn.innerHTML = '❌ Cerrar Captura';
+        btn.style.background = '#c0392b'; // Cambia a rojo
+    } else {
+        container.style.display = 'none';
+        btn.innerHTML = '➕ Agregar Resultado';
+        btn.style.background = '#145a32'; // Vuelve a verde
+    }
+}
+
 function renderTableResultados(dataArray) {
     const container = document.getElementById("resultsContainer");
     let html = `<table><tr><th>Fecha</th><th>Grupo</th><th>Ganador</th><th>Perdedor</th><th>Dif</th></tr>`;
@@ -125,7 +148,11 @@ function filtrarPorJugador(nombre, desdeDonde) {
     const filtrados = allMatches.filter(m => (m.ganador && m.ganador.trim() === nombre.trim()) || (m.perdedor && m.perdedor.trim() === nombre.trim()));
     document.getElementById('resTitulo').innerText = "Partidos de: " + nombre;
     document.getElementById('resetFilterContainer').style.display = 'block';
+    
+    // Oculta el botón y el Radar si se activa el filtro de jugador
     document.getElementById('btnAgregarRes').style.display = 'none';
+    document.getElementById('radarContainer').style.display = 'none';
+    
     renderTableResultados(filtrados);
     showTab('resultados');
 }
@@ -134,7 +161,12 @@ function regresarAOrigen() {
     jugadorFiltradoActual = null; 
     document.getElementById('resTitulo').innerText = "Resultados del Torneo";
     document.getElementById('resetFilterContainer').style.display = 'none';
+    
+    // Vuelve a mostrar el botón del Radar
     document.getElementById('btnAgregarRes').style.display = 'inline-block';
+    document.getElementById('btnAgregarRes').innerHTML = '➕ Agregar Resultado';
+    document.getElementById('btnAgregarRes').style.background = '#145a32';
+    
     renderTableResultados(allMatches); 
     showTab(origenFiltro);
 }
