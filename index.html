@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-/**** Version con Radar de Resultados Integrado  sin la T y la nueva dirección ****/
+/**** mas rápida ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -98,9 +98,14 @@
 <footer>Senior Match Play La Herradura</footer>
 
 <script>
-const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRZcYd77Mwyd4yG74FwaFH6YaC8ZJyVczqJgoQZ0yC6OgLedTGCcTdh3VmcRPhmWQ1b4huye5dcjbUw/pub?gid=1865776841&single=true&output=csv";
-const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vRZcYd77Mwyd4yG74FwaFH6YaC8ZJyVczqJgoQZ0yC6OgLedTGCcTdh3VmcRPhmWQ1b4huye5dcjbUw/pub?gid=1692285690&single=true&output=csv";
 
+// 1. Pon aquí tu ID real del documento (el que sacaste de la barra de direcciones)
+const sheetID = "1KkAMMyeqJVZiKBnFhce3BoxWLIChlUcVLG5pVmLWS88"; 
+
+// 2. Ligas de Tiempo Real (Ruta rápida conectada directo al motor)
+const sheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Resultados";
+const playersSheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Participantes";
+    
 let allMatches = []; 
 let globalLeaderboard = {}; 
 let origenFiltro = 'leaderboard';
@@ -219,7 +224,7 @@ function generarNoticiasAutomaticas() {
 
 async function inicializar() {
     try {
-        const resRes = await fetch(sheetURL);
+        const resRes = await fetch(sheetURL + "&t=" + new Date().getTime());
         const resText = await resRes.text();
         const resRows = resText.trim().split("\n").map(r => r.split(","));
         const h = resRows[0];
@@ -259,7 +264,7 @@ async function inicializar() {
         renderTableResultados(allMatches);
         generarNoticiasAutomaticas();
 
-        const pRes = await fetch(playersSheetURL);
+        const pRes = await fetch(playersSheetURL + "&t=" + new Date().getTime());
         const pText = await pRes.text();
         const pRows = pText.trim().split("\n").map(r => r.split(","));
         const ph = pRows[0];
