@@ -1,4 +1,6 @@
 <!DOCTYPE html>
+/**** jugadores en negativo ****/
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -22,6 +24,8 @@
     .clickable-name:hover { color: #0b3d2e; background: #e8f8f0; }
     footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:40px}
     .resultBtn{display:inline-block;background:#145a32;color:white;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold;margin-bottom:20px;border: none;cursor: pointer;}
+    .pos-diff { color: green; font-weight: bold; }
+    .neg-diff { color: red; font-weight: bold; }
 </style>
 </head>
 <body>
@@ -43,15 +47,14 @@
 <section id="leaderboard" class="tab">
     <div class="card">
         <h2>Leaderboard por Grupo</h2>
-        <p style="font-size: 12px; color: #666;">* Haz clic en el nombre de un jugador para ver el detalle de sus partidos.</p>
-        <div id="groupsContainer">Cargando datos del Leaderboard...</div>
+        <div id="groupsContainer">Cargando datos...</div>
     </div>
 </section>
 
 <section id="jugadores" class="tab" style="display:none">
     <div class="card">
         <h2>Jugadores del Torneo</h2>
-        <div id="playersContainer">Cargando lista de jugadores...</div>
+        <div id="playersContainer">Cargando jugadores...</div>
     </div>
 </section>
 
@@ -66,62 +69,74 @@
     </div>
 </section>
 
-<section id="noticias" class="tab" style="display:none">
-    <div class="card">
-        <h2>Crónicas y Noticias del Green</h2>
-        <p>Selecciona el Leaderboard para ver las posiciones actuales.</p>
-    </div>
-</section>
-
-<section id="contacto" class="tab" style="display:none">
-    <div class="card">
-        <h2>Contacto</h2>
-        <p>Envíe un mensaje al comité organizador.</p>
-    </div>
-</section>
+<section id="noticias" class="tab" style="display:none"><div class="card"><h2>Noticias</h2><p>Contenido de noticias pronto...</p></div></section>
+<section id="contacto" class="tab" style="display:none"><div class="card"><h2>Contacto</h2><p>smpherradura@gmail.com</p></div></section>
 
 <footer>Senior Match Play La Herradura</footer>
 
 <script>
-// URL de tus hojas de cálculo
 const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
 const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=762416889&single=true&output=csv";
 
 let allMatches = []; 
 let origenFiltro = 'leaderboard';
+let jugadorFiltradoActual = null; // Para saber a quién estamos auditando
 
 function showTab(tabId){
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(t => t.style.display = 'none');
-    const target = document.getElementById(tabId);
-    if(target) target.style.display = 'block';
+    document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
     window.scrollTo(0,0);
 }
 
 function renderTableResultados(dataArray) {
     const container = document.getElementById("resultsContainer");
-    if(!container) return;
     let html = `<table><tr><th>Fecha</th><th>Grupo</th><th>Ganador</th><th>Perdedor</th><th>Dif</th></tr>`;
+    
     dataArray.forEach(r => {
-        html += `<tr><td>${r.fecha}</td><td>${r.grupo}</td><td style="font-weight:bold">${r.ganador}</td><td>${r.perdedor}</td><td>${r.diff}</td></tr>`;
+        let displayDiff = r.diff;
+        let diffClass = "";
+
+        // Si hay un jugador filtrado y es el perdedor, mostramos la diferencia en negativo
+        if (jugadorFiltradoActual) {
+            if (r.perdedor.trim() === jugadorFiltradoActual.trim()) {
+                displayDiff = "-" + r.diff;
+                diffClass = "neg-diff";
+            } else if (r.ganador.trim() === jugadorFiltradoActual.trim()) {
+                displayDiff = "+" + r.diff;
+                diffClass = "pos-diff";
+            }
+        }
+
+        html += `<tr>
+            <td>${r.fecha}</td>
+            <td>${r.grupo}</td>
+            <td style="font-weight:bold">${r.ganador}</td>
+            <td>${r.perdedor}</td>
+            <td class="${diffClass}">${displayDiff}</td>
+        </tr>`;
     });
     container.innerHTML = html + "</table>";
 }
 
 function filtrarPorJugador(nombre, desdeDonde) {
     origenFiltro = desdeDonde;
+    jugadorFiltradoActual = nombre; // Guardamos el nombre del socio a auditar
+    
     const filtrados = allMatches.filter(m => 
         (m.ganador && m.ganador.trim() === nombre.trim()) || 
         (m.perdedor && m.perdedor.trim() === nombre.trim())
     );
+    
     document.getElementById('resTitulo').innerText = "Partidos de: " + nombre;
     document.getElementById('resetFilterContainer').style.display = 'block';
     document.getElementById('btnAgregarRes').style.display = 'none';
+    
     renderTableResultados(filtrados);
     showTab('resultados');
 }
 
 function regresarAOrigen() {
+    jugadorFiltradoActual = null; // Limpiamos el filtro
     document.getElementById('resTitulo').innerText = "Resultados del Torneo";
     document.getElementById('resetFilterContainer').style.display = 'none';
     document.getElementById('btnAgregarRes').style.display = 'inline-block';
@@ -129,10 +144,8 @@ function regresarAOrigen() {
     showTab(origenFiltro);
 }
 
-// CARGA INICIAL DE DATOS
 async function inicializar() {
     try {
-        // 1. Cargar Resultados
         const resRes = await fetch(sheetURL);
         const resText = await resRes.text();
         const resRows = resText.trim().split("\n").map(r => r.split(","));
@@ -150,12 +163,10 @@ async function inicializar() {
 
         renderTableResultados(allMatches);
 
-        // 2. Procesar Leaderboard
         let players = {};
         allMatches.forEach(m => {
             if(!players[m.ganador]) players[m.ganador] = {nombre:m.ganador, grupo:m.grupo, jj:0, jg:0, diff:0};
             if(!players[m.perdedor]) players[m.perdedor] = {nombre:m.perdedor, grupo:m.grupo, jj:0, jg:0, diff:0};
-            
             players[m.ganador].jj++; players[m.ganador].jg++; players[m.ganador].diff += Number(m.diff);
             players[m.perdedor].jj++; players[m.perdedor].diff -= Number(m.diff);
         });
@@ -178,7 +189,6 @@ async function inicializar() {
         });
         document.getElementById("groupsContainer").innerHTML = lbHtml;
 
-        // 3. Cargar Jugadores
         const pRes = await fetch(playersSheetURL);
         const pText = await pRes.text();
         const pRows = pText.trim().split("\n").map(r => r.split(","));
@@ -194,12 +204,10 @@ async function inicializar() {
         });
         document.getElementById("playersContainer").innerHTML = pHtml + "</table>";
 
-    } catch (error) {
-        console.error(error);
-        document.getElementById("groupsContainer").innerHTML = "Error al cargar datos. Revisa la conexión.";
+    } catch (e) {
+        document.getElementById("groupsContainer").innerHTML = "Error de conexión.";
     }
 }
-
 inicializar();
 </script>
 </body>
