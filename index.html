@@ -225,7 +225,8 @@ function generarNoticiasAutomaticas() {
 async function inicializar() {
     try {
         const resRes = await fetch(sheetURL + "&t=" + new Date().getTime());
-        const resText = await resRes.text();
+        let resText = await resRes.text();
+        resText = resText.replace(/"/g, ''); // <--- Aspiradora de comillas
         const resRows = resText.trim().split("\n").map(r => r.split(","));
         const h = resRows[0];
         const idxF = h.indexOf("Fecha"), idxG = h.indexOf("GrupoRes"), idxW = h.indexOf("NombreRes"), idxL = h.indexOf("Perdedor"), idxD = h.indexOf("Diferencia");
@@ -251,7 +252,6 @@ async function inicializar() {
             const sorted = groups[g].sort((a,b) => b.jg - a.jg || b.diff - a.diff);
             lbHtml += `<div class="groupTitle">Grupo ${g}</div><table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>`;
             sorted.forEach((p, i) => {
-                // Guardamos la posición en un objeto global para las noticias
                 globalLeaderboard[p.nombre] = { pos: i+1, grupo: g };
                 const cl = i===0 ? 'firstPlace' : (i===1 ? 'secondPlace' : '');
                 lbHtml += `<tr class="${cl}"><td>${i+1}</td><td class="clickable-name" onclick="filtrarPorJugador('${p.nombre}', 'leaderboard')">${p.nombre}</td><td>${p.jj}</td><td>${p.jg}</td><td>${p.diff}</td></tr>`;
@@ -260,21 +260,21 @@ async function inicializar() {
         });
         document.getElementById("groupsContainer").innerHTML = lbHtml;
 
-        // Ahora sí generamos las noticias con contexto de posiciones
         renderTableResultados(allMatches);
         generarNoticiasAutomaticas();
 
         const pRes = await fetch(playersSheetURL + "&t=" + new Date().getTime());
-        const pText = await pRes.text();
+        let pText = await pRes.text();
+        pText = pText.replace(/"/g, ''); // <--- Aspiradora de comillas
         const pRows = pText.trim().split("\n").map(r => r.split(","));
         const ph = pRows[0];
-        const idxN = ph.findIndex(x => x.toLowerCase().includes("nombre")), idxGr = ph.findIndex(x => x.toLowerCase().includes("grupo")), idxGh = ph.findIndex(x => x.toLowerCase().includes("ghin"));
+        const idxN = ph.findIndex(x => x && x.toLowerCase().includes("nombre")), idxGr = ph.findIndex(x => x && x.toLowerCase().includes("grupo")), idxGh = ph.findIndex(x => x && x.toLowerCase().includes("ghin"));
         let pHtml = "<table><tr><th>Grupo</th><th>Jugador</th><th>GHIN</th></tr>";
-        pRows.slice(1).sort((a,b) => a[idxGr]?.localeCompare(b[idxGr]) || a[idxN]?.localeCompare(b[idxN])).forEach(cols => {
+        pRows.slice(1).sort((a,b) => (a[idxGr]||'').localeCompare(b[idxGr]||'') || (a[idxN]||'').localeCompare(b[idxN]||'')).forEach(cols => {
             if(cols[idxN]) pHtml += `<tr><td>${cols[idxGr] || ''}</td><td class="clickable-name" onclick="filtrarPorJugador('${cols[idxN]}', 'jugadores')">${cols[idxN]}</td><td>${cols[idxGh] || ''}</td></tr>`;
         });
         document.getElementById("playersContainer").innerHTML = pHtml + "</table>";
-    } catch (e) { document.getElementById("groupsContainer").innerHTML = "Error al cargar datos."; }
+    } catch (e) { document.getElementById("groupsContainer").innerHTML = "Error al cargar datos."; console.log(e); }
 }
 inicializar();
 </script>
