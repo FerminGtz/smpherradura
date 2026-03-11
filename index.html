@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-/**** mas rápida uno ****/
+
+/**** Version para noticias ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -29,8 +30,6 @@
     .news-content { line-height: 1.6; color: #333; font-size: 15px; }
     .pos-diff { color: #27ae60; font-weight: bold; }
     .neg-diff { color: #c0392b; font-weight: bold; }
-    
-    /* Transición suave para el botón del Radar */
     #btnAgregarRes { transition: background-color 0.3s ease; }
 </style>
 </head>
@@ -46,7 +45,7 @@
     <a onclick="showTab('leaderboard')">Leaderboard</a>
     <a onclick="showTab('jugadores')">Jugadores</a>
     <a onclick="showTab('resultados')">Resultados</a>
-    <a onclick="showTab('noticias')">Noticias 🆕</a>
+    <a onclick="showTab('noticias')">Noticias 📰</a>
     <a onclick="showTab('contacto')">Contacto</a>
 </nav>
 
@@ -74,7 +73,7 @@
         <button id="btnAgregarRes" class="resultBtn" onclick="toggleRadar()">➕ Agregar Resultado</button>
         
         <div id="radarContainer" style="display:none; margin-bottom: 25px; text-align: center;">
-            <iframe src="https://script.google.com/macros/s/AKfycbxlGjEURL3-EjsNQQ4P1iNGNriPYblQPgn83XjrLxGBf-BYpNvYXCJdBwDbZQMGXqo0Zg/exec" width="100%" height="650px" frameborder="0" style="border-radius: 10px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 380px; background: #fff;"></iframe>
+            <iframe src="https://script.google.com/macros/s/AKfycbymJ1kajgL92yj3Fg_dXlO46yjTdWwvsiYvsZND4cAuc11MBWWJtbs5DhdsWqe9zReyig/exec" width="100%" height="650px" frameborder="0" style="border-radius: 10px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 380px; background: #fff;"></iframe>
         </div>
         <div id="resultsContainer">Cargando resultados...</div>
     </div>
@@ -82,9 +81,9 @@
 
 <section id="noticias" class="tab" style="display:none">
     <div class="card">
-        <h2>Crónicas del Green</h2>
-        <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Análisis detallado de la jornada en La Herradura.</p>
-        <div id="contenedorNoticias">Analizando la relevancia de los partidos...</div>
+        <h2>Últimas Noticias</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Toda la información y crónicas del torneo escritas por la dirección.</p>
+        <div id="contenedorNoticias">Cargando noticias...</div>
     </div>
 </section>
 
@@ -98,14 +97,14 @@
 <footer>Senior Match Play La Herradura</footer>
 
 <script>
-
-// 1. Pon aquí tu ID real del documento (el que sacaste de la barra de direcciones)
+// 1. Pon aquí tu ID real del documento
 const sheetID = "1KkAMMyeqJVZiKBnFhce3BoxWLIChlUcVLG5pVmLWS88"; 
 
-// 2. Ligas de Tiempo Real (Ruta rápida conectada directo al motor)
+// 2. Ligas de Tiempo Real
 const sheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Resultados";
 const playersSheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Participantes";
-    
+const newsSheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Noticias";
+
 let allMatches = []; 
 let globalLeaderboard = {}; 
 let origenFiltro = 'leaderboard';
@@ -117,18 +116,17 @@ function showTab(tabId){
     window.scrollTo(0,0);
 }
 
-// Función nueva para desplegar/ocultar el Radar de Resultados
 function toggleRadar() {
     const container = document.getElementById('radarContainer');
     const btn = document.getElementById('btnAgregarRes');
     if (container.style.display === 'none') {
         container.style.display = 'block';
         btn.innerHTML = '❌ Cerrar Captura';
-        btn.style.background = '#c0392b'; // Cambia a rojo
+        btn.style.background = '#c0392b';
     } else {
         container.style.display = 'none';
         btn.innerHTML = '➕ Agregar Resultado';
-        btn.style.background = '#145a32'; // Vuelve a verde
+        btn.style.background = '#145a32';
     }
 }
 
@@ -153,11 +151,8 @@ function filtrarPorJugador(nombre, desdeDonde) {
     const filtrados = allMatches.filter(m => (m.ganador && m.ganador.trim() === nombre.trim()) || (m.perdedor && m.perdedor.trim() === nombre.trim()));
     document.getElementById('resTitulo').innerText = "Partidos de: " + nombre;
     document.getElementById('resetFilterContainer').style.display = 'block';
-    
-    // Oculta el botón y el Radar si se activa el filtro de jugador
     document.getElementById('btnAgregarRes').style.display = 'none';
     document.getElementById('radarContainer').style.display = 'none';
-    
     renderTableResultados(filtrados);
     showTab('resultados');
 }
@@ -166,56 +161,39 @@ function regresarAOrigen() {
     jugadorFiltradoActual = null; 
     document.getElementById('resTitulo').innerText = "Resultados del Torneo";
     document.getElementById('resetFilterContainer').style.display = 'none';
-    
-    // Vuelve a mostrar el botón del Radar
     document.getElementById('btnAgregarRes').style.display = 'inline-block';
     document.getElementById('btnAgregarRes').innerHTML = '➕ Agregar Resultado';
     document.getElementById('btnAgregarRes').style.background = '#145a32';
-    
     renderTableResultados(allMatches); 
     showTab(origenFiltro);
 }
 
-function generarNoticiasAutomaticas() {
+// FUNCIÓN PARA NOTICIAS MANUALES
+function mostrarNoticiasManuales(datosNoticias) {
     const contenedor = document.getElementById("contenedorNoticias");
-    if (!contenedor || allMatches.length === 0) return;
+    if (!contenedor) return;
+
+    if (!datosNoticias || datosNoticias.length === 0) {
+        contenedor.innerHTML = "<p>No hay noticias publicadas aún.</p>";
+        return;
+    }
 
     let htmlNoticias = "";
-    const recientes = allMatches.slice(0, 6);
+    
+    // Invertimos para que la más reciente salga primero
+    const noticiasOrdenadas = datosNoticias.reverse();
 
-    recientes.forEach((juego, index) => {
-        let tag = "Crónica";
-        let color = "#145a32";
-        let relato = "";
-        const dif = Number(juego.diff);
-        
-        // Verificamos si el perdedor es líder del grupo
-        const perdedorInfo = globalLeaderboard[juego.perdedor];
-        const esLiderCae = (perdedorInfo && perdedorInfo.pos === 1);
-
-        if (esLiderCae) {
-            tag = "Golpe de Autoridad";
-            color = "#d35400";
-            relato = `¡Sorpresa mayúscula en el <strong>Grupo ${juego.grupo}</strong>! <strong>${juego.ganador}</strong> ha logrado lo que parecía imposible: derrotar al actual líder del grupo, <strong>${juego.perdedor}</strong>. Con una diferencia de ${dif}, este resultado rompe las quinielas y pone el liderato al rojo vivo.`;
-        } else if (dif >= 5) {
-            tag = "Dominio Total";
-            color = "#8e44ad";
-            relato = `<strong>${juego.ganador}</strong> desplegó un golf de altísimo nivel para vencer contundentemente a ${juego.perdedor}. El marcador de +${dif} refleja una jornada donde cada putt y cada salida favorecieron al ganador, consolidando su posición en la tabla.`;
-        } else if (dif <= 1) {
-            tag = "Juegazo de Antología";
-            color = "#c0392b";
-            relato = `¡Qué nivel de competencia entre <strong>${juego.ganador}</strong> y <strong>${juego.perdedor}</strong>! Fue un duelo de nervios templados que se mantuvo cerrado hasta el último hoyo. La mínima diferencia de ${dif} nos recuerda que en el Senior Match Play nadie regala nada.`;
-        } else {
-            tag = "Resultado Clave";
-            color = "#2980b9";
-            relato = `Jornada productiva para <strong>${juego.ganador}</strong> en su enfrentamiento contra ${juego.perdedor}. En un match de mucha estrategia en el <strong>Grupo ${juego.grupo}</strong>, el triunfo por ${dif} puntos le permite seguir escalando peldaños en la clasificación general.`;
-        }
+    noticiasOrdenadas.forEach(n => {
+        let color = "#145a32"; // Verde por defecto
+        if(n.etiqueta.toLowerCase().includes("aviso") || n.etiqueta.toLowerCase().includes("importante")) color = "#d35400"; // Naranja
+        if(n.etiqueta.toLowerCase().includes("resultado")) color = "#2980b9"; // Azul
 
         htmlNoticias += `
         <div class="news-card" style="border-left-color: ${color}">
-            <span class="news-tag" style="background: ${color}">${tag}</span>
-            <span class="news-date">${juego.fecha}</span>
-            <div class="news-content">${relato}</div>
+            <span class="news-tag" style="background: ${color}">${n.etiqueta}</span>
+            <span class="news-date">${n.fecha}</span>
+            <h3 style="margin-top: 10px; margin-bottom: 5px; color: #145a32;">${n.titular}</h3>
+            <div class="news-content">${n.relato}</div>
         </div>`;
     });
 
@@ -226,7 +204,7 @@ async function inicializar() {
     try {
         const resRes = await fetch(sheetURL + "&t=" + new Date().getTime());
         let resText = await resRes.text();
-        resText = resText.replace(/"/g, ''); // <--- Aspiradora de comillas
+        resText = resText.replace(/"/g, ''); 
         const resRows = resText.trim().split("\n").map(r => r.split(","));
         const h = resRows[0];
         const idxF = h.indexOf("Fecha"), idxG = h.indexOf("GrupoRes"), idxW = h.indexOf("NombreRes"), idxL = h.indexOf("Perdedor"), idxD = h.indexOf("Diferencia");
@@ -235,7 +213,6 @@ async function inicializar() {
             fecha: cols[idxF] || "", grupo: cols[idxG] || "", ganador: cols[idxW] || "", perdedor: cols[idxL] || "", diff: cols[idxD] || ""
         })).filter(m => m.ganador !== "").sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
-        // Calcular Leaderboard primero para usarlo en Noticias
         let players = {};
         allMatches.forEach(m => {
             if(!players[m.ganador]) players[m.ganador] = {nombre:m.ganador, grupo:m.grupo, jj:0, jg:0, diff:0};
@@ -261,11 +238,10 @@ async function inicializar() {
         document.getElementById("groupsContainer").innerHTML = lbHtml;
 
         renderTableResultados(allMatches);
-        generarNoticiasAutomaticas();
 
         const pRes = await fetch(playersSheetURL + "&t=" + new Date().getTime());
         let pText = await pRes.text();
-        pText = pText.replace(/"/g, ''); // <--- Aspiradora de comillas
+        pText = pText.replace(/"/g, ''); 
         const pRows = pText.trim().split("\n").map(r => r.split(","));
         const ph = pRows[0];
         const idxN = ph.findIndex(x => x && x.toLowerCase().includes("nombre")), idxGr = ph.findIndex(x => x && x.toLowerCase().includes("grupo")), idxGh = ph.findIndex(x => x && x.toLowerCase().includes("ghin"));
@@ -274,8 +250,30 @@ async function inicializar() {
             if(cols[idxN]) pHtml += `<tr><td>${cols[idxGr] || ''}</td><td class="clickable-name" onclick="filtrarPorJugador('${cols[idxN]}', 'jugadores')">${cols[idxN]}</td><td>${cols[idxGh] || ''}</td></tr>`;
         });
         document.getElementById("playersContainer").innerHTML = pHtml + "</table>";
+
+        // --- SECCIÓN: DESCARGAR NOTICIAS MANUALES ---
+        const nRes = await fetch(newsSheetURL + "&t=" + new Date().getTime());
+        let nText = await nRes.text();
+        nText = nText.replace(/"/g, ''); 
+        const nRows = nText.trim().split("\n").map(r => r.split(","));
+        const nh = nRows[0];
+        const idxNF = nh.indexOf("Fecha"), idxNE = nh.indexOf("Etiqueta"), idxNT = nh.indexOf("Titular"), idxNR = nh.indexOf("Relato");
+
+        let allNews = [];
+        if (nRows.length > 1) {
+            allNews = nRows.slice(1).map(cols => ({
+                fecha: cols[idxNF] || "",
+                etiqueta: cols[idxNE] || "Crónica",
+                titular: cols[idxNT] || "",
+                relato: cols[idxNR] || ""
+            })).filter(n => n.relato !== ""); // Ignora filas vacías
+        }
+        mostrarNoticiasManuales(allNews);
+        // --- FIN SECCIÓN NOTICIAS ---
+
     } catch (e) { document.getElementById("groupsContainer").innerHTML = "Error al cargar datos."; console.log(e); }
 }
+
 inicializar();
 </script>
 </body>
