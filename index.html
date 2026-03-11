@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-/**** Version Regresar a Jugadores ****/
+/**** nos muestra los juegos cuando oprimimos el nombre y nos regresa a Leadrboard ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -81,6 +81,7 @@ form textarea{min-height:120px;resize:vertical;}
 <section id="leaderboard" class="tab">
     <div class="card">
         <h2>Leaderboard por Grupo</h2>
+        <p style="font-size: 12px; color: #666;">* Haz clic en el nombre de un jugador para ver el detalle de sus partidos.</p>
         <div id="groupsContainer"></div>
     </div>
 </section>
@@ -98,7 +99,7 @@ form textarea{min-height:120px;resize:vertical;}
         <h2 id="resTitulo">Resultados del Torneo</h2>
         
         <div id="resetFilterContainer" style="display:none; margin-bottom: 15px;">
-            <button onclick="regresarAJugadores()" class="resultBtn" style="background: #2e86de;">🔙 Regresar a Jugadores</button>
+            <button onclick="regresarAOrigen()" class="resultBtn" style="background: #2e86de;">🔙 Regresar</button>
         </div>
 
         <a href="TU_LINK_DE_GOOGLE_FORMS" id="btnAgregarRes" target="_blank" class="resultBtn">
@@ -108,49 +109,12 @@ form textarea{min-height:120px;resize:vertical;}
     </div>
 </section>
 
-<section id="noticias" class="tab" style="display:none">
-    <div class="card">
-        <h2>Crónicas y Noticias del Green</h2>
-        <div class="news-card">
-            <span class="news-tag">Aviso</span>
-            <span class="news-date">10 de Marzo, 2026</span>
-            <div class="news-content">
-                <strong>Leaderboard Actualizado:</strong> El sistema ahora calcula automáticamente la diferencia neta basada en los resultados reportados. ¡Revisa tu posición en la tabla!
-            </div>
-        </div>
-    </div>
-</section>
-
-<section id="contacto" class="tab" style="display:none">
-    <div class="card">
-        <h2>Contacto</h2>
-        <p>Si tienes dudas sobre el torneo, envíanos un mensaje.</p>
-        <form action="https://formsubmit.co/smpherradura@gmail.com" method="POST">
-            <input type="hidden" name="_subject" value="Nuevo mensaje - Senior Match Play">
-            <input type="hidden" name="_captcha" value="false">
-            <label>Nombre</label>
-            <input type="text" name="name" placeholder="Tu nombre" required>
-            <label>Email</label>
-            <input type="email" name="email" placeholder="Tu correo electrónico" required>
-            <label>Mensaje</label>
-            <textarea name="message" rows="6" placeholder="Escribe tu mensaje aquí..." required></textarea>
-            <button type="submit" class="resultBtn">Enviar Mensaje</button>
-        </form>
-        <hr style="margin:30px 0">
-        <h3>Grupo Oficial de WhatsApp</h3>
-        <a href="https://chat.whatsapp.com/EgCeLLUf7yqJ9vXTMmUZBy" target="_blank" class="resultBtn">🟢 Unirse al Grupo de WhatsApp</a>
-    </div>
-</section>
-
-<footer>
-    Senior Match Play La Herradura | Monterrey, N.L.
-</footer>
-
 <script>
 const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
 const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=762416889&single=true&output=csv";
 
 let allMatches = []; 
+let origenFiltro = 'leaderboard'; // Para saber a dónde regresar
 
 function showTab(tabId){
     const tabs = document.querySelectorAll('.tab');
@@ -159,7 +123,9 @@ function showTab(tabId){
     window.scrollTo(0,0);
 }
 
-function filtrarPorJugador(nombre) {
+function filtrarPorJugador(nombre, desdeDonde) {
+    origenFiltro = desdeDonde; // Guardamos si venimos de 'leaderboard' o 'jugadores'
+    
     const filtrados = allMatches.filter(m => 
         m.ganador.toLowerCase().trim() === nombre.toLowerCase().trim() || 
         m.perdedor.toLowerCase().trim() === nombre.toLowerCase().trim()
@@ -173,13 +139,12 @@ function filtrarPorJugador(nombre) {
     showTab('resultados');
 }
 
-// Nueva función que limpia el filtro y regresa a la pestaña de Jugadores
-function regresarAJugadores() {
+function regresarAOrigen() {
     document.getElementById('resTitulo').innerText = "Resultados del Torneo";
     document.getElementById('resetFilterContainer').style.display = 'none';
     document.getElementById('btnAgregarRes').style.display = 'inline-block';
-    renderTableResultados(allMatches); // Resetear a la lista completa internamente
-    showTab('jugadores'); // Cambiar de pestaña
+    renderTableResultados(allMatches); 
+    showTab(origenFiltro); // Regresa a la pestaña guardada
 }
 
 function renderTableResultados(dataArray) {
@@ -191,14 +156,13 @@ function renderTableResultados(dataArray) {
     container.innerHTML = html + "</table>";
 }
 
-/* CARGAR LEADERBOARD */
+/* CARGAR LEADERBOARD (Con Nombres Clickeables) */
 fetch(sheetURL).then(res=>res.text()).then(data=>{
     const rows=data.trim().split("\n");
     const headers=rows[0].split(",");
-    const idxWinner=headers.indexOf("NombreRes");
-    const idxLoser=headers.indexOf("Perdedor");
-    const idxWinDiff=headers.indexOf("Diferencia");
-    const idxGrupo=headers.indexOf("GrupoRes");
+    const idxWinner=headers.indexOf("NombreRes"), idxLoser=headers.indexOf("Perdedor"), 
+          idxWinDiff=headers.indexOf("Diferencia"), idxGrupo=headers.indexOf("GrupoRes");
+    
     let players={};
     rows.slice(1).forEach(row=>{
         const cols=row.split(",");
@@ -212,50 +176,6 @@ fetch(sheetURL).then(res=>res.text()).then(data=>{
             players[loser].jugados++; players[loser].diff-=winDiff;
         }
     });
+
     let groups={};
-    Object.values(players).forEach(p=>{ if(!groups[p.grupo]) groups[p.grupo]=[]; groups[p.grupo].push(p); });
-    const container=document.getElementById("groupsContainer");
-    container.innerHTML="";
-    Object.keys(groups).sort().forEach(g=>{
-        const jugadores=groups[g].sort((a,b)=> (b.ganados-a.ganados) || (b.diff-a.diff));
-        let html=`<div class="groupTitle">Grupo ${g}</div><table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>`;
-        jugadores.forEach((p,i)=>{
-            const posClass=(i===0)?'firstPlace':(i===1?'secondPlace':'');
-            html+=`<tr class="${posClass}"><td>${i+1}</td><td>${p.jugador}</td><td>${p.jugados}</td><td>${p.ganados}</td><td>${p.diff}</td></tr>`;
-        });
-        container.innerHTML+=html+"</table>";
-    });
-});
-
-/* CARGAR RESULTADOS */
-fetch(sheetURL).then(res=>res.text()).then(data=>{
-    const rows=data.trim().split("\n"), headers=rows[0].split(",");
-    const idxF=headers.indexOf("Fecha"), idxG=headers.indexOf("GrupoRes"), idxW=headers.indexOf("NombreRes"), idxL=headers.indexOf("Perdedor"), idxD=headers.indexOf("Diferencia");
-    allMatches = rows.slice(1).map(row=>{
-        const cols=row.split(",");
-        return { fecha:cols[idxF]||"", grupo:cols[idxG]||"", ganador:cols[idxW]||"", perdedor:cols[idxL]||"", diff:cols[idxD]||"" };
-    });
-    allMatches.sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
-    renderTableResultados(allMatches);
-});
-
-/* CARGAR JUGADORES */
-fetch(playersSheetURL).then(res=>res.text()).then(data=>{
-    const rows=data.trim().split("\n"), headers=rows[0].split(",");
-    const idxN=headers.findIndex(h=>h.toLowerCase().includes("nombre")), idxG=headers.findIndex(h=>h.toLowerCase().includes("grupo")), 
-          idxGh=headers.findIndex(h=>h.toLowerCase().includes("ghin")), idxE=headers.findIndex(h=>h.toLowerCase().includes("email")), idxT=headers.findIndex(h=>h.toLowerCase().includes("tel"));
-    let pList = rows.slice(1).map(row=>{
-        const cols=row.split(",");
-        return { grupo:cols[idxG]||"", nombre:cols[idxN]||"", ghin:cols[idxGh]||"", email:cols[idxE]||"", tel:cols[idxT]||"" };
-    }).sort((a,b)=> a.grupo.localeCompare(b.grupo) || a.nombre.localeCompare(b.nombre));
-
-    const pContainer=document.getElementById("playersContainer");
-    let html=`<table><tr><th>Grupo</th><th>Jugador</th><th>GHIN</th><th>Email</th><th>Teléfono</th></tr>`;
-    pList.forEach(p=>{
-        html+=`<tr><td>${p.grupo}</td><td class="clickable-name" onclick="filtrarPorJugador('${p.nombre}')">${p.nombre}</td><td>${p.ghin}</td><td>${p.email}</td><td>${p.tel}</td></tr>`;
-    });
-    pContainer.innerHTML=html+"</table>";
-});
-</script>
-</body>
-</html>
+    Object.values(players).forEach(p=>{ if(!groups[p.grupo]) groups[p
