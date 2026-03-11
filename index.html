@@ -1,82 +1,125 @@
 <!DOCTYPE html>
-/**** Version respuesta mas amplia ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Senior Match Play La Herradura</title>
 <style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f7}
-    header{background:#0b3d2e;color:white;padding:20px;text-align:center}
-    header img{width:140px;margin-bottom:10px}
-    nav{background:#145a32;padding:10px;text-align:center;position: sticky; top: 0; z-index: 1000;}
-    nav a{color:white;margin:0 15px;text-decoration:none;font-weight:bold; cursor: pointer;}
-    section{padding:40px;max-width:1200px;margin:auto}
-    .card{background:white;padding:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-bottom:30px}
-    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-    th,td{padding:8px;border-bottom:1px solid #ddd;text-align:center}
-    th{background:#0b3d2e;color:white;}
-    .groupTitle{margin-top:30px;font-size:22px;color:#145a32; font-weight: bold;}
-    .firstPlace{background:#e8f8f0;font-weight:bold}
-    .secondPlace{background:#fdf5e6}
-    .clickable-name { color: #145a32; text-decoration: underline; cursor: pointer; font-weight: bold; }
-    .clickable-name:hover { color: #0b3d2e; background: #e8f8f0; }
-    footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:40px}
-    .resultBtn{display:inline-block;background:#145a32;color:white;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold;margin-bottom:20px;border: none;cursor: pointer;}
-    .news-card { border-left: 5px solid #145a32; margin-bottom: 25px; padding: 20px; background: #fff; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .news-tag { color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: bold; display: inline-block; margin-bottom: 10px;}
-    .news-date { color: #888; font-size: 12px; float: right; }
-    .news-content { line-height: 1.6; color: #333; font-size: 15px; }
-    .pos-diff { color: #27ae60; font-weight: bold; }
-    .neg-diff { color: #c0392b; font-weight: bold; }
+    /* RESET Y BASE MOBILE-FIRST */
+    *{box-sizing: border-box;}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;margin:0;background:#f0f2f5;color:#1c1e21;line-height:1.5}
+    
+    /* HEADER ADAPTABLE */
+    header{background:#0b3d2e;color:white;padding:20px 15px;text-align:center;border-bottom:4px solid #145a32}
+    header img{width:100px;height:auto;margin-bottom:10px}
+    header h1{margin:0;font-size:1.3rem;letter-spacing:-0.5px}
+    header p{margin:5px 0 0;font-size:0.8rem;opacity:0.9}
+
+    /* NAVEGACIÓN TÁCTIL */
+    nav{background:#145a32;display:flex;overflow-x:auto;white-space:nowrap;position:sticky;top:0;z-index:1000;box-shadow:0 2px 5px rgba(0,0,0,0.2);scrollbar-width:none;}
+    nav::-webkit-scrollbar {display:none;}
+    nav a{flex:1;color:white;padding:15px 18px;text-decoration:none;font-size:0.75rem;font-weight:700;text-align:center;text-transform:uppercase;border-bottom:3px solid transparent}
+    nav a.active{border-bottom-color:#fff;background:rgba(255,255,255,0.1)}
+
+    /* CONTENEDORES RESPONSIVOS */
+    section{padding:15px;max-width:1000px;margin:auto;min-height:80vh}
+    .card{background:white;padding:15px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.1);margin-bottom:20px;border:1px solid #e1e4e8}
+    h2{font-size:1.2rem;margin-top:0;color:#0b3d2e;border-left:4px solid #145a32;padding-left:10px}
+
+    /* TABLAS RESPONSIVAS (Scroll lateral en móvil) */
+    .table-container {width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:10px;border-radius:8px;border:1px solid #eee}
+    table{width:100%;border-collapse:collapse;font-size:14px;background:white;min-width:450px}
+    th,td{padding:12px 10px;border-bottom:1px solid #f0f0f0;text-align:center}
+    th{background:#f8f9fa;color:#65676b;font-size:10px;text-transform:uppercase;font-weight:700}
+    
+    /* ESTILOS DE POSICIONES */
+    .groupTitle{margin:20px 0 10px;font-size:18px;color:#145a32;font-weight:800;display:flex;align-items:center;justify-content:space-between}
+    .firstPlace{background:#e8f8f0;font-weight:bold;color:#0b3d2e}
+    .secondPlace{background:#fff9f0}
+    .clickable-name { color: #145a32; text-decoration: underline; cursor: pointer; font-weight: bold; padding: 4px 0; display: inline-block;}
+    .pos-diff { color: #27ae60; font-weight: 800; }
+    .neg-diff { color: #c0392b; font-weight: 800; }
+
+    /* NOTICIAS ESTILO FEED */
+    .news-card { border-left: 6px solid #145a32; margin-bottom: 20px; padding: 18px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .news-tag { color: white; padding: 4px 10px; border-radius: 4px; font-size: 10px; text-transform: uppercase; font-weight: 800; display: inline-block; margin-bottom: 12px;}
+    .news-date { color: #888; font-size: 11px; float: right; margin-top: 5px;}
+    .news-content { line-height: 1.6; color: #333; font-size: 14px; clear: both;}
+
+    /* ESTILO DE BRACKET (Llaves de Finales) */
+    .bracket-match { background: #f8f9fa; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 15px; overflow: hidden; }
+    .bracket-label { background: #0b3d2e; color: white; padding: 4px 10px; font-size: 10px; font-weight: bold; text-transform: uppercase; }
+    .bracket-slot { padding: 12px; display: flex; justify-content: space-between; border-bottom: 1px solid #eee; font-size: 14px; }
+    .bracket-slot:last-child { border-bottom: none; }
+    .seed-badge { background: #eee; border-radius: 3px; padding: 2px 5px; font-size: 10px; color: #666; margin-right: 8px; font-weight: bold; }
+
+    /* BOTONES */
+    .resultBtn{display:block; width:100%; background:#145a32; color:white; padding:16px; border-radius:8px; text-decoration:none; font-weight:bold; text-align:center; border: none; cursor: pointer; font-size:15px; margin-bottom:15px}
+    
+    footer{background:#0b3d2e;color:white;text-align:center;padding:30px 15px;margin-top:20px;font-size:12px;opacity:0.8}
+
+    @media (max-width: 480px) {
+        .ghin-col { display: none; } /* Ocultar GHIN en móviles para dar aire */
+        section { padding: 10px; }
+        table { min-width: 380px; }
+    }
 </style>
 </head>
 <body>
 
 <header>
     <img src="SMP Circular.png" alt="Logo SMP">
-    <h1>Senior Match Play La Herradura</h1>
-    <p>Convivencia, Competencia e Integración</p>
+    <h1>Senior Match Play</h1>
+    <p>La Herradura · Monterrey</p>
 </header>
 
-<nav>
-    <a onclick="showTab('leaderboard')">Leaderboard</a>
-    <a onclick="showTab('jugadores')">Jugadores</a>
-    <a onclick="showTab('resultados')">Resultados</a>
-    <a onclick="showTab('noticias')">Noticias 🆕</a>
-    <a onclick="showTab('contacto')">Contacto</a>
+<nav id="navbar">
+    <a onclick="showTab('leaderboard', this)" class="active">Líderes</a>
+    <a onclick="showTab('bracket', this)">Finales 🏆</a>
+    <a onclick="showTab('resultados', this)">Partidos</a>
+    <a onclick="showTab('noticias', this)">Noticias</a>
+    <a onclick="showTab('jugadores', this)">Socios</a>
 </nav>
 
 <section id="leaderboard" class="tab">
     <div class="card">
-        <h2>Leaderboard por Grupo</h2>
-        <div id="groupsContainer">Cargando datos...</div>
+        <h2>🏆 Leaderboard por Grupo</h2>
+        <div id="groupsContainer">Cargando posiciones...</div>
     </div>
 </section>
 
-<section id="jugadores" class="tab" style="display:none">
+<section id="bracket" class="tab" style="display:none">
     <div class="card">
-        <h2>Jugadores del Torneo</h2>
-        <div id="playersContainer">Cargando lista...</div>
+        <h2>🔥 Bracket Proyectado</h2>
+        <p style="font-size: 13px; color: #666; margin-bottom: 20px;">
+            Simulación basada en las posiciones actuales. Los cruces oficiales se definirán al cierre de la fase regular.
+        </p>
+        <div id="contenedorBracket">Generando llaves...</div>
     </div>
 </section>
 
 <section id="resultados" class="tab" style="display:none">
     <div class="card">
-        <h2 id="resTitulo">Resultados del Torneo</h2>
-        <div id="resetFilterContainer" style="display:none; margin-bottom: 15px;">
-            <button onclick="regresarAOrigen()" class="resultBtn" style="background: #2e86de;">🔙 Regresar</button>
+        <h2 id="resTitulo">🎾 Resultados</h2>
+        <div id="resetFilterContainer" style="display:none;">
+            <button onclick="regresarAOrigen()" class="resultBtn" style="background: #2e86de;">🔙 Ver todos los partidos</button>
         </div>
-        <a href="TU_LINK_DE_GOOGLE_FORMS" id="btnAgregarRes" target="_blank" class="resultBtn">➕ Agregar Resultado</a>
-        <div id="resultsContainer">Cargando resultados...</div>
+        <a href="TU_LINK_DE_GOOGLE_FORMS" id="btnAgregarRes" target="_blank" class="resultBtn">➕ Reportar Resultado</a>
+        <div class="table-container" id="resultsContainer"></div>
     </div>
 </section>
 
 <section id="noticias" class="tab" style="display:none">
     <div class="card">
-        <h2>Crónicas del Green</h2>
-        <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Análisis detallado de la jornada en La Herradura.</p>
-        <div id="contenedorNoticias">Analizando la relevancia de los partidos...</div>
+        <h2>📰 Crónicas del Green</h2>
+        <div id="contenedorNoticias">Analizando jornada...</div>
+    </div>
+</section>
+
+<section id="jugadores" class="tab" style="display:none">
+    <div class="card">
+        <h2>👥 Jugadores</h2>
+        <div class="table-container" id="playersContainer"></div>
     </div>
 </section>
 
@@ -87,7 +130,10 @@
     </div>
 </section>
 
-<footer>Senior Match Play La Herradura</footer>
+<footer>
+    Senior Match Play La Herradura<br>
+    Monterrey, Nuevo León · 2026
+</footer>
 
 <script>
 const sheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13IuKDEfk3JJ8wSBp6hU0JTvwdiPcSGfMjL2-DdS1N6Viis9IE01bkgEkkhvPIs47bph8lNB/pub?gid=991654690&single=true&output=csv";
@@ -95,18 +141,21 @@ const playersSheetURL="https://docs.google.com/spreadsheets/d/e/2PACX-1vTAwKmk13
 
 let allMatches = []; 
 let globalLeaderboard = {}; 
+let listadoLideres = []; // Para el bracket
 let origenFiltro = 'leaderboard';
 let jugadorFiltradoActual = null; 
 
-function showTab(tabId){
+function showTab(tabId, el){
     document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
     document.getElementById(tabId).style.display = 'block';
+    if(el) el.classList.add('active');
     window.scrollTo(0,0);
 }
 
 function renderTableResultados(dataArray) {
     const container = document.getElementById("resultsContainer");
-    let html = `<table><tr><th>Fecha</th><th>Grupo</th><th>Ganador</th><th>Perdedor</th><th>Dif</th></tr>`;
+    let html = `<table><tr><th>Fecha</th><th>Ganador</th><th>Perdedor</th><th>Dif</th></tr>`;
     dataArray.forEach(r => {
         let displayDiff = r.diff;
         let diffClass = "";
@@ -114,7 +163,7 @@ function renderTableResultados(dataArray) {
             if (r.perdedor.trim() === jugadorFiltradoActual.trim()) { displayDiff = "-" + r.diff; diffClass = "neg-diff"; }
             else if (r.ganador.trim() === jugadorFiltradoActual.trim()) { displayDiff = "+" + r.diff; diffClass = "pos-diff"; }
         }
-        html += `<tr><td>${r.fecha}</td><td>${r.grupo}</td><td style="font-weight:bold">${r.ganador}</td><td>${r.perdedor}</td><td class="${diffClass}">${displayDiff}</td></tr>`;
+        html += `<tr><td>${r.fecha}</td><td style="font-weight:bold">${r.ganador}</td><td>${r.perdedor}</td><td class="${diffClass}">${displayDiff}</td></tr>`;
     });
     container.innerHTML = html + "</table>";
 }
@@ -123,7 +172,7 @@ function filtrarPorJugador(nombre, desdeDonde) {
     origenFiltro = desdeDonde;
     jugadorFiltradoActual = nombre; 
     const filtrados = allMatches.filter(m => (m.ganador && m.ganador.trim() === nombre.trim()) || (m.perdedor && m.perdedor.trim() === nombre.trim()));
-    document.getElementById('resTitulo').innerText = "Partidos de: " + nombre;
+    document.getElementById('resTitulo').innerText = "Historial: " + nombre.split(' ')[0];
     document.getElementById('resetFilterContainer').style.display = 'block';
     document.getElementById('btnAgregarRes').style.display = 'none';
     renderTableResultados(filtrados);
@@ -134,54 +183,70 @@ function regresarAOrigen() {
     jugadorFiltradoActual = null; 
     document.getElementById('resTitulo').innerText = "Resultados del Torneo";
     document.getElementById('resetFilterContainer').style.display = 'none';
-    document.getElementById('btnAgregarRes').style.display = 'inline-block';
+    document.getElementById('btnAgregarRes').style.display = 'block';
     renderTableResultados(allMatches); 
     showTab(origenFiltro);
+}
+
+// LÓGICA DE BRACKET PROYECTADO
+function generarBracket() {
+    const cont = document.getElementById("contenedorBracket");
+    // Tomamos los 1ros y 2dos lugares de los grupos procesados
+    if (listadoLideres.length < 2) {
+        cont.innerHTML = "<p>Aún no hay suficientes datos para proyectar la segunda fase.</p>";
+        return;
+    }
+
+    let html = "";
+    // Simulación de cruces: 1ro Grupo A vs 2do Grupo B, etc.
+    for (let i = 0; i < listadoLideres.length; i += 2) {
+        const p1 = listadoLideres[i]; // El 1ro
+        const p2 = listadoLideres[i+1]; // El 2do
+        if(!p1 || !p2) break;
+
+        html += `
+        <div class="bracket-match">
+            <div class="bracket-label">Llave Proyectada - Grupo ${p1.grupo}</div>
+            <div class="bracket-slot">
+                <span><span class="seed-badge">1°</span> ${p1.nombre}</span>
+                <span style="color:#aaa">vs</span>
+            </div>
+            <div class="bracket-slot">
+                <span><span class="seed-badge">2°</span> ${p2.nombre}</span>
+                <span>--</span>
+            </div>
+        </div>`;
+    }
+    cont.innerHTML = html;
 }
 
 function generarNoticiasAutomaticas() {
     const contenedor = document.getElementById("contenedorNoticias");
     if (!contenedor || allMatches.length === 0) return;
-
     let htmlNoticias = "";
-    const recientes = allMatches.slice(0, 6);
+    const recientes = allMatches.slice(0, 5);
 
     recientes.forEach((juego, index) => {
-        let tag = "Crónica";
-        let color = "#145a32";
-        let relato = "";
+        let tag = "Crónica"; let color = "#145a32"; let relato = "";
         const dif = Number(juego.diff);
-        
-        // Verificamos si el perdedor es líder del grupo
         const perdedorInfo = globalLeaderboard[juego.perdedor];
         const esLiderCae = (perdedorInfo && perdedorInfo.pos === 1);
 
         if (esLiderCae) {
-            tag = "Golpe de Autoridad";
-            color = "#d35400";
-            relato = `¡Sorpresa mayúscula en el <strong>Grupo ${juego.grupo}</strong>! <strong>${juego.ganador}</strong> ha logrado lo que parecía imposible: derrotar al actual líder del grupo, <strong>${juego.perdedor}</strong>. Con una diferencia de ${dif}, este resultado rompe las quinielas y pone el liderato al rojo vivo.`;
+            tag = "Sorpresa"; color = "#d35400";
+            relato = `¡Sorpresa en el <strong>Grupo ${juego.grupo}</strong>! <strong>${juego.ganador}</strong> derrotó al líder <strong>${juego.perdedor}</strong> por ${dif}. El liderato se pone al rojo vivo.`;
         } else if (dif >= 5) {
-            tag = "Dominio Total";
-            color = "#8e44ad";
-            relato = `<strong>${juego.ganador}</strong> desplegó un golf de altísimo nivel para vencer contundentemente a ${juego.perdedor}. El marcador de +${dif} refleja una jornada donde cada putt y cada salida favorecieron al ganador, consolidando su posición en la tabla.`;
+            tag = "Dominio"; color = "#8e44ad";
+            relato = `<strong>${juego.ganador}</strong> desplegó un golf de alto nivel para vencer contundentemente a ${juego.perdedor} con un sólido +${dif}.`;
         } else if (dif <= 1) {
-            tag = "Juegazo de Antología";
-            color = "#c0392b";
-            relato = `¡Qué nivel de competencia entre <strong>${juego.ganador}</strong> y <strong>${juego.perdedor}</strong>! Fue un duelo de nervios templados que se mantuvo cerrado hasta el último hoyo. La mínima diferencia de ${dif} nos recuerda que en el Senior Match Play nadie regala nada.`;
+            tag = "Juegazo"; color = "#c0392b";
+            relato = `¡Duelo de nervios! <strong>${juego.ganador}</strong> y <strong>${juego.perdedor}</strong> se enfrascaron en una batalla que se definió por la mínima.`;
         } else {
-            tag = "Resultado Clave";
-            color = "#2980b9";
-            relato = `Jornada productiva para <strong>${juego.ganador}</strong> en su enfrentamiento contra ${juego.perdedor}. En un match de mucha estrategia en el <strong>Grupo ${juego.grupo}</strong>, el triunfo por ${dif} puntos le permite seguir escalando peldaños en la clasificación general.`;
+            tag = "Clave"; color = "#2980b9";
+            relato = `Puntos vitales para <strong>${juego.ganador}</strong> tras superar a ${juego.perdedor} en un match estratégico en el Grupo ${juego.grupo}.`;
         }
-
-        htmlNoticias += `
-        <div class="news-card" style="border-left-color: ${color}">
-            <span class="news-tag" style="background: ${color}">${tag}</span>
-            <span class="news-date">${juego.fecha}</span>
-            <div class="news-content">${relato}</div>
-        </div>`;
+        htmlNoticias += `<div class="news-card" style="border-left-color:${color}"><span class="news-tag" style="background:${color}">${tag}</span><span class="news-date">${juego.fecha}</span><div class="news-content">${relato}</div></div>`;
     });
-
     contenedor.innerHTML = htmlNoticias;
 }
 
@@ -197,7 +262,6 @@ async function inicializar() {
             fecha: cols[idxF] || "", grupo: cols[idxG] || "", ganador: cols[idxW] || "", perdedor: cols[idxL] || "", diff: cols[idxD] || ""
         })).filter(m => m.ganador !== "").sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
 
-        // Calcular Leaderboard primero para usarlo en Noticias
         let players = {};
         allMatches.forEach(m => {
             if(!players[m.ganador]) players[m.ganador] = {nombre:m.ganador, grupo:m.grupo, jj:0, jg:0, diff:0};
@@ -210,34 +274,36 @@ async function inicializar() {
         Object.values(players).forEach(p => { if(!groups[p.grupo]) groups[p.grupo] = []; groups[p.grupo].push(p); });
         
         let lbHtml = "";
+        listadoLideres = []; 
         Object.keys(groups).sort().forEach(g => {
             const sorted = groups[g].sort((a,b) => b.jg - a.jg || b.diff - a.diff);
-            lbHtml += `<div class="groupTitle">Grupo ${g}</div><table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>`;
+            // Guardamos los 2 primeros para el bracket
+            listadoLideres.push(sorted[0]);
+            if(sorted[1]) listadoLideres.push(sorted[1]);
+
+            lbHtml += `<div class="groupTitle">Grupo ${g}</div><div class="table-container"><table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>`;
             sorted.forEach((p, i) => {
-                // Guardamos la posición en un objeto global para las noticias
                 globalLeaderboard[p.nombre] = { pos: i+1, grupo: g };
                 const cl = i===0 ? 'firstPlace' : (i===1 ? 'secondPlace' : '');
-                lbHtml += `<tr class="${cl}"><td>${i+1}</td><td class="clickable-name" onclick="filtrarPorJugador('${p.nombre}', 'leaderboard')">${p.nombre}</td><td>${p.jj}</td><td>${p.jg}</td><td>${p.diff}</td></tr>`;
+                lbHtml += `<tr class="${cl}"><td>${i+1}</td><td class="clickable-name" onclick="filtrarPorJugador('${p.nombre}', 'leaderboard')">${p.nombre}</td><td>${p.jj}</td><td>${p.jg}</td><td class="${p.diff>=0?'pos-diff':'neg-diff'}">${p.diff}</td></tr>`;
             });
-            lbHtml += "</table>";
+            lbHtml += "</table></div>";
         });
         document.getElementById("groupsContainer").innerHTML = lbHtml;
 
-        // Ahora sí generamos las noticias con contexto de posiciones
         renderTableResultados(allMatches);
         generarNoticiasAutomaticas();
+        generarBracket();
 
         const pRes = await fetch(playersSheetURL);
         const pText = await pRes.text();
         const pRows = pText.trim().split("\n").map(r => r.split(","));
-        const ph = pRows[0];
-        const idxN = ph.findIndex(x => x.toLowerCase().includes("nombre")), idxGr = ph.findIndex(x => x.toLowerCase().includes("grupo")), idxGh = ph.findIndex(x => x.toLowerCase().includes("ghin"));
-        let pHtml = "<table><tr><th>Grupo</th><th>Jugador</th><th>GHIN</th></tr>";
-        pRows.slice(1).sort((a,b) => a[idxGr]?.localeCompare(b[idxGr]) || a[idxN]?.localeCompare(b[idxN])).forEach(cols => {
-            if(cols[idxN]) pHtml += `<tr><td>${cols[idxGr] || ''}</td><td class="clickable-name" onclick="filtrarPorJugador('${cols[idxN]}', 'jugadores')">${cols[idxN]}</td><td>${cols[idxGh] || ''}</td></tr>`;
+        let pHtml = "<table><tr><th>G</th><th>Jugador</th><th class='ghin-col'>GHIN</th></tr>";
+        pRows.slice(1).sort((a,b) => a[1]?.localeCompare(b[1]) || a[0]?.localeCompare(b[0])).forEach(cols => {
+            if(cols[0]) pHtml += `<tr><td>${cols[1] || ''}</td><td class="clickable-name" onclick="filtrarPorJugador('${cols[0]}', 'jugadores')">${cols[0]}</td><td class='ghin-col'>${cols[2] || ''}</td></tr>`;
         });
         document.getElementById("playersContainer").innerHTML = pHtml + "</table>";
-    } catch (e) { document.getElementById("groupsContainer").innerHTML = "Error al cargar datos."; }
+    } catch (e) { document.getElementById("groupsContainer").innerHTML = "Error de conexión."; }
 }
 inicializar();
 </script>
