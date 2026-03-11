@@ -27,7 +27,7 @@
     .news-card { border-left: 5px solid #145a32; margin-bottom: 25px; padding: 20px; background: #fff; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .news-tag { color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: bold; display: inline-block; margin-bottom: 10px;}
     .news-date { color: #888; font-size: 12px; float: right; }
-    .news-content { line-height: 1.6; color: #333; font-size: 15px; }
+    .news-content { line-height: 1.6; color: #333; font-size: 15px; white-space: pre-wrap; }
     .pos-diff { color: #27ae60; font-weight: bold; }
     .neg-diff { color: #c0392b; font-weight: bold; }
     #btnAgregarRes { transition: background-color 0.3s ease; }
@@ -103,8 +103,8 @@ const sheetID = "1KkAMMyeqJVZiKBnFhce3BoxWLIChlUcVLG5pVmLWS88";
 // 2. Ligas de Tiempo Real
 const sheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Resultados";
 const playersSheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Participantes";
-const newsSheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Noticias";
-
+const newsSheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:json&sheet=Noticias";
+    
 let allMatches = []; 
 let globalLeaderboard = {}; 
 let origenFiltro = 'leaderboard';
@@ -251,25 +251,33 @@ async function inicializar() {
         });
         document.getElementById("playersContainer").innerHTML = pHtml + "</table>";
 
-        // --- SECCIÓN: DESCARGAR NOTICIAS MANUALES ---
-        const nRes = await fetch(newsSheetURL + "&t=" + new Date().getTime());
-        let nText = await nRes.text();
-        nText = nText.replace(/"/g, ''); 
-        const nRows = nText.trim().split("\n").map(r => r.split(","));
-        const nh = nRows[0];
-        const idxNF = nh.indexOf("Fecha"), idxNE = nh.indexOf("Etiqueta"), idxNT = nh.indexOf("Titular"), idxNR = nh.indexOf("Relato");
+        // --- SECCIÓN: DESCARGAR NOTICIAS MANUALES (CORREGIDA) ---
+const nRes = await fetch(newsSheetURL + "&t=" + new Date().getTime());
+let nText = await nRes.text();
 
-        let allNews = [];
-        if (nRows.length > 1) {
-            allNews = nRows.slice(1).map(cols => ({
-                fecha: cols[idxNF] || "",
-                etiqueta: cols[idxNE] || "Crónica",
-                titular: cols[idxNT] || "",
-                relato: cols[idxNR] || ""
-            })).filter(n => n.relato !== ""); // Ignora filas vacías
-        }
-        mostrarNoticiasManuales(allNews);
-        // --- FIN SECCIÓN NOTICIAS ---
+// Usamos una técnica para extraer el JSON puro de Google Sheets
+const nJson = JSON.parse(nText.substring(47, nText.length - 2));
+const nh = nJson.table.cols.map(c => c.label); // Obtener encabezados
+const nRows = nJson.table.rows;
+
+const idxNF = nh.indexOf("Fecha"), 
+      idxNE = nh.indexOf("Etiqueta"), 
+      idxNT = nh.indexOf("Titular"), 
+      idxNR = nh.indexOf("Relato");
+
+let allNews = [];
+
+if (nRows.length > 0) {
+    allNews = nRows.map(row => ({
+        fecha: row.c[idxNF] ? (row.c[idxNF].f || row.c[idxNF].v) : "",
+        etiqueta: row.c[idxNE] ? row.c[idxNE].v : "Crónica",
+        titular: row.c[idxNT] ? row.c[idxNT].v : "",
+        relato: row.c[idxNR] ? row.c[idxNR].v : ""
+    })).filter(n => n.relato !== ""); // Ignora filas vacías
+}
+
+mostrarNoticiasManuales(allNews);
+// --- FIN SECCIÓN NOTICIAS ---
 
     } catch (e) { document.getElementById("groupsContainer").innerHTML = "Error al cargar datos."; console.log(e); }
 }
