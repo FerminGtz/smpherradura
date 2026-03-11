@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-/**** Version para noticias mejorada con salto renglones ****/
+/**** Version para noticias mejorada con salto renglones, nuevo intento ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -180,7 +180,6 @@ function regresarAOrigen() {
     showTab(origenFiltro);
 }
 
-// FUNCIÓN PARA NOTICIAS MANUALES
 function mostrarNoticiasManuales(datosNoticias) {
     const contenedor = document.getElementById("contenedorNoticias");
     if (!contenedor) return;
@@ -193,19 +192,23 @@ function mostrarNoticiasManuales(datosNoticias) {
     let htmlNoticias = "";
     
     // Invertimos para que la más reciente salga primero
-    const noticiasOrdenadas = datosNoticias.reverse();
+    const noticiasOrdenadas = [...datosNoticias].reverse(); 
 
     noticiasOrdenadas.forEach(n => {
-        let color = "#145a32"; // Verde por defecto
-        if(n.etiqueta.toLowerCase().includes("aviso") || n.etiqueta.toLowerCase().includes("importante")) color = "#d35400"; // Naranja
-        if(n.etiqueta.toLowerCase().includes("resultado")) color = "#2980b9"; // Azul
+        let color = "#145a32"; 
+        if(n.etiqueta.toLowerCase().includes("aviso") || n.etiqueta.toLowerCase().includes("importante")) color = "#d35400";
+        if(n.etiqueta.toLowerCase().includes("resultado")) color = "#2980b9";
+
+        // --- LA MAGIA ESTÁ AQUÍ ---
+        // Convertimos los saltos de línea del Sheet en etiquetas <br> de HTML
+        const relatoConSaltos = n.relato.replace(/\n/g, '<br>');
 
         htmlNoticias += `
-        <div class="news-card" style="border-left-color: ${color}">
+        <div class="news-card" style="border-left: 5px solid ${color}">
             <span class="news-tag" style="background: ${color}">${n.etiqueta}</span>
             <span class="news-date">${n.fecha}</span>
-            <h3 style="margin-top: 10px; margin-bottom: 5px; color: #145a32;">${n.titular}</h3>
-            <div class="news-content">${n.relato}</div>
+            <h3 style="margin-top: 10px; margin-bottom: 5px; color: #145a32; font-weight: bold;">${n.titular}</h3>
+            <div class="news-content" style="white-space: normal;">${relatoConSaltos}</div>
         </div>`;
     });
 
