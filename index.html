@@ -1,122 +1,153 @@
 <!DOCTYPE html>
-
-/**** Version para noticias mejorada con salto renglones, cuarto intento ****/
+/**** con play offs ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Senior Match Play La Herradura</title>
 <style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f4f6f7}
-    header{background:#0b3d2e;color:white;padding:20px;text-align:center}
-    header img{width:140px;margin-bottom:10px}
-    nav{background:#145a32;padding:10px;text-align:center;position: sticky; top: 0; z-index: 1000;}
-    nav a{color:white;margin:0 15px;text-decoration:none;font-weight:bold; cursor: pointer;}
-    section{padding:40px;max-width:1200px;margin:auto}
-    .card{background:white;padding:20px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,0.1);margin-bottom:30px}
-    table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-    th,td{padding:8px;border-bottom:1px solid #ddd;text-align:center}
-    th{background:#0b3d2e;color:white;}
-    .groupTitle{margin-top:30px;font-size:22px;color:#145a32; font-weight: bold;}
-    .firstPlace{background:#e8f8f0;font-weight:bold}
-    .secondPlace{background:#fdf5e6}
-    .clickable-name { color: #145a32; text-decoration: underline; cursor: pointer; font-weight: bold; }
-    .clickable-name:hover { color: #0b3d2e; background: #e8f8f0; }
-    footer{background:#0b3d2e;color:white;text-align:center;padding:15px;margin-top:40px}
-    .resultBtn{display:inline-block;background:#145a32;color:white;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold;margin-bottom:20px;border: none;cursor: pointer;}
-    .news-card h3 {
-        font-weight: 800 !important; /* Extra negrita */
-        font-size: 1.3em;
-        margin: 10px 0;
-        color: #0b3d2e;
-    }
-    .news-tag { color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; text-transform: uppercase; font-weight: bold; display: inline-block; margin-bottom: 10px;}
-    .news-date { color: #888; font-size: 12px; float: right; }
-    .news-content { 
-        line-height: 1.6; 
-        color: #333; 
-        font-size: 15px; 
-        white-space: pre-wrap !important; 
-        display: block;
-        margin-top: 10px;
-    }
+    body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin:0;background:#f4f6f7;color:#333;}
+    header{background:#0b3d2e;color:white;padding:25px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+    header img{width:140px;margin-bottom:10px;border-radius:50%;background:white;padding:5px;}
+    header h1{margin:10px 0 5px 0;font-size:26px;}
+    header p{margin:0;font-style:italic;opacity:0.9;}
+    
+    nav{background:#145a32;padding:5px;text-align:center;position:sticky;top:0;z-index:1000;display:flex;justify-content:center;overflow-x:auto;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+    nav a{color:white;padding:12px 20px;text-decoration:none;font-weight:bold;cursor:pointer;transition:0.3s;white-space:nowrap;border-bottom:3px solid transparent;}
+    nav a:hover, nav a.active-tab {background:#0b3d2e;border-bottom:3px solid #f1c40f;}
+    
+    section{padding:30px 15px;max-width:1100px;margin:auto;min-height:70vh;}
+    .card{background:white;padding:25px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.08);margin-bottom:30px;}
+    h2{color:#145a32;border-bottom:2px solid #e8f8f0;padding-bottom:10px;margin-top:0;}
+    
+    .table-wrapper {overflow-x: auto;}
+    table{width:100%;border-collapse:collapse;margin-top:15px;font-size:14px;min-width:500px;}
+    th,td{padding:12px 10px;border-bottom:1px solid #eee;text-align:center;}
+    th{background:#0b3d2e;color:white;text-transform:uppercase;font-size:12px;}
+    
+    .groupTitle{margin-top:40px;font-size:22px;color:#145a32;font-weight:bold;border-left:6px solid #145a32;padding:12px 20px;background:#f9f9f9;border-radius:0 8px 8px 0;}
+    .firstPlace{background:#e8f8f0;font-weight:bold;}
+    .secondPlace{background:#fdf5e6;}
+    .clickable-name {color:#145a32;text-decoration:underline;cursor:pointer;font-weight:bold;transition:0.2s;}
+    .clickable-name:hover {color:#0b3d2e;background:#e8f8f0;}
+    
+    .resultBtn{display:inline-block;background:#145a32;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin-bottom:20px;border:none;cursor:pointer;transition:0.3s;box-shadow:0 4px 6px rgba(0,0,0,0.15);}
+    .resultBtn:hover{background:#0b3d2e;transform:translateY(-2px);}
+
+    /* ESTILOS DE PLAYOFFS */
+    .bracket-container { display: flex; flex-direction: column; gap: 30px; margin-top: 20px; }
+    .phase-block { background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 15px; }
+    .phase-title { background: #0b3d2e; color: #f1c40f; padding: 10px 15px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; text-align: center; letter-spacing: 2px; }
+    .matches-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+    .match-card { background: #fff; border: 2px solid #e8f8f0; border-radius: 8px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
+    .match-player { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; font-size: 16px; border-radius: 4px; }
+    .winner { background: #e8f8f0; font-weight: bold; color: #145a32; border-left: 4px solid #27ae60; }
+    .loser { color: #888; text-decoration: line-through; }
+    .vs-divider { border-top: 1px dashed #ccc; margin: 5px 0; }
+    .match-result { font-size: 13px; color: #d35400; font-weight: bold; text-align: center; margin-top: 10px; background: #fff5e6; padding: 4px; border-radius: 4px; }
+
+    /* NOTICIAS */
+    .news-card { border-left: 6px solid #145a32; margin-bottom: 30px; padding: 25px; background: #fff; border-radius: 0 12px 12px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .news-tag { color: white; padding: 5px 15px; border-radius: 20px; font-size: 11px; text-transform: uppercase; font-weight: bold; display: inline-block; margin-bottom: 15px; }
+    .news-date { color: #888; font-size: 13px; float: right; font-weight: 500; }
+    .news-title { margin: 0 0 12px 0; color: #0b3d2e; font-size: 22px; font-weight: bold; }
+    .news-content { line-height: 1.8; color: #444; font-size: 16px; white-space: pre-wrap; word-wrap: break-word; }
+
     .pos-diff { color: #27ae60; font-weight: bold; }
     .neg-diff { color: #c0392b; font-weight: bold; }
-    #btnAgregarRes { transition: background-color 0.3s ease; }
+    
+    footer{background:#0b3d2e;color:white;text-align:center;padding:30px;margin-top:50px;}
+    #radarContainer iframe { width: 100%; max-width: 480px; height: 650px; border-radius: 12px; border: 1px solid #ddd; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
 </style>
 </head>
 <body>
 
 <header>
-    <img src="SMP Circular.png" alt="Logo SMP">
+    <img src="SMP Circular.png" alt="Logo SMP" onerror="this.style.display='none'">
     <h1>Senior Match Play La Herradura</h1>
     <p>Convivencia, Competencia e Integración</p>
 </header>
 
-<nav>
-    <a onclick="showTab('leaderboard')">Leaderboard</a>
-    <a onclick="showTab('jugadores')">Jugadores</a>
-    <a onclick="showTab('resultados')">Resultados</a>
-    <a onclick="showTab('noticias')">Noticias 📰</a>
-    <a onclick="showTab('contacto')">Contacto</a>
+<nav id="mainNav">
+    <a onclick="showTab('leaderboard')" id="nav-leaderboard" class="active-tab">Leaderboard</a>
+    <a onclick="showTab('playoffs')" id="nav-playoffs" style="display:none;">Playoffs 🏆</a>
+    <a onclick="showTab('jugadores')" id="nav-jugadores">Jugadores</a>
+    <a onclick="showTab('resultados')" id="nav-resultados">Resultados</a>
+    <a onclick="showTab('noticias')" id="nav-noticias">Noticias 📰</a>
+    <a onclick="showTab('contacto')" id="nav-contacto">Contacto</a>
 </nav>
 
 <section id="leaderboard" class="tab">
     <div class="card">
-        <h2>Leaderboard por Grupo</h2>
-        <div id="groupsContainer">Cargando datos...</div>
+        <h2>Clasificación de Grupos</h2>
+        <div id="groupsContainer">Cargando tablero...</div>
+    </div>
+</section>
+
+<!-- SECCIÓN DE PLAYOFFS -->
+<section id="playoffs" class="tab" style="display:none">
+    <div class="card">
+        <h2>Cuadro Final de Eliminación</h2>
+        <p style="color: #666; font-size: 15px; margin-bottom: 25px;">El camino hacia el campeonato del Senior Match Play.</p>
+        <div id="bracketContainer">Conectando con las llaves del torneo...</div>
     </div>
 </section>
 
 <section id="jugadores" class="tab" style="display:none">
     <div class="card">
-        <h2>Jugadores del Torneo</h2>
-        <div id="playersContainer">Cargando lista...</div>
+        <h2>Listado de Jugadores</h2>
+        <div id="playersContainer">Cargando participantes...</div>
     </div>
 </section>
 
 <section id="resultados" class="tab" style="display:none">
     <div class="card">
-        <h2 id="resTitulo">Resultados del Torneo</h2>
+        <h2 id="resTitulo">Historial de Partidos</h2>
         <div id="resetFilterContainer" style="display:none; margin-bottom: 15px;">
-            <button onclick="regresarAOrigen()" class="resultBtn" style="background: #2e86de;">🔙 Regresar</button>
+            <button onclick="regresarAOrigen()" class="resultBtn" style="background: #2e86de;">🔙 Ver todos los partidos</button>
         </div>
         
-        <button id="btnAgregarRes" class="resultBtn" onclick="toggleRadar()">➕ Agregar Resultado</button>
+        <button id="btnAgregarRes" class="resultBtn" onclick="toggleRadar()">➕ Capturar Resultado</button>
         
-        <div id="radarContainer" style="display:none; margin-bottom: 25px; text-align: center;">
-            <iframe src="https://script.google.com/macros/s/AKfycby2K5BMC-AhWJUhD1B1ygE6IiD-0cfRvkDens5RvlB72XjwAIVZZzBUsOrYO1Pz1XNMbA/exec" width="100%" height="650px" frameborder="0" style="border-radius: 10px; border: 1px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 380px; background: #fff;"></iframe>
+        <div id="radarContainer" style="display:none; margin-bottom: 30px; text-align: center;">
+            <!-- OJO: Asegúrate de poner aquí tu NUEVO link de Google Apps Script tras actualizar los permisos -->
+            <iframe src="https://script.google.com/macros/s/AKfycbymJ1kajgL92yj3Fg_dXlO46yjTdWwvsiYvsZND4cAuc11MBWWJtbs5DhdsWqe9zReyig/exec"></iframe>
         </div>
-        <div id="resultsContainer">Cargando resultados...</div>
+        <div class="table-wrapper">
+            <div id="resultsContainer">Cargando resultados...</div>
+        </div>
     </div>
 </section>
 
 <section id="noticias" class="tab" style="display:none">
     <div class="card">
-        <h2>Últimas Noticias</h2>
-        <p style="color: #666; font-size: 14px; margin-bottom: 25px;">Toda la información y crónicas del torneo escritas por la dirección.</p>
-        <div id="contenedorNoticias">Cargando noticias...</div>
+        <h2>Crónicas del Green</h2>
+        <p style="color: #666; font-size: 15px; margin-bottom: 25px;">Últimas noticias redactadas por la dirección.</p>
+        <div id="contenedorNoticias">Cargando notas...</div>
     </div>
 </section>
 
 <section id="contacto" class="tab" style="display:none">
     <div class="card">
         <h2>Contacto</h2>
-        <p>smpherradura@gmail.com</p>
+        <div style="text-align: center; padding: 20px;">
+            <p style="font-size: 18px;">¿Dudas sobre el torneo?</p>
+            <p style="font-weight: bold; color: #145a32; font-size: 24px;">smpherradura@gmail.com</p>
+        </div>
     </div>
 </section>
 
-<footer>Senior Match Play La Herradura</footer>
+<footer>&copy; 2024 Senior Match Play La Herradura</footer>
 
 <script>
-// 1. Pon aquí tu ID real del documento
 const sheetID = "1KkAMMyeqJVZiKBnFhce3BoxWLIChlUcVLG5pVmLWS88"; 
+const baseGviz = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:json";
 
-// 2. Ligas de Tiempo Real
-const sheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Resultados";
-const playersSheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:csv&sheet=Participantes";
-const newsSheetURL = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:json&sheet=Noticias";
-    
+// --- CONFIGURACIÓN DE FECHAS DE PLAYOFFS ---
+// Ajusta las fechas en formato AÑO-MES-DIA (Y la hora si lo deseas)
+const fechaInicioPlayoffs = new Date("2025-10-15T00:00:00"); // Cuándo inicia el repechaje
+const fechaFinPlayoffs = new Date("2026-05-31T23:59:59"); // Cuándo desaparece la pestaña
+
 let allMatches = []; 
 let globalLeaderboard = {}; 
 let origenFiltro = 'leaderboard';
@@ -124,7 +155,9 @@ let jugadorFiltradoActual = null;
 
 function showTab(tabId){
     document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+    document.querySelectorAll('#mainNav a').forEach(a => a.classList.remove('active-tab'));
     document.getElementById(tabId).style.display = 'block';
+    document.getElementById('nav-' + tabId).classList.add('active-tab');
     window.scrollTo(0,0);
 }
 
@@ -137,8 +170,31 @@ function toggleRadar() {
         btn.style.background = '#c0392b';
     } else {
         container.style.display = 'none';
-        btn.innerHTML = '➕ Agregar Resultado';
+        btn.innerHTML = '➕ Capturar Resultado';
         btn.style.background = '#145a32';
+    }
+}
+
+// Lector Universal JSON
+async function fetchSheetJSON(sheetName) {
+    try {
+        const response = await fetch(`${baseGviz}&sheet=${sheetName}&t=${new Date().getTime()}`);
+        const text = await response.text();
+        const jsonString = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
+        const jsonData = JSON.parse(jsonString);
+        const rows = jsonData.table.rows;
+        const cols = jsonData.table.cols.map(c => c.label);
+        
+        return rows.map(row => {
+            let obj = {};
+            row.c.forEach((cell, i) => {
+                obj[cols[i]] = cell ? (cell.f !== null ? cell.f : cell.v) : "";
+            });
+            return obj;
+        });
+    } catch (e) {
+        console.error("Falla al cargar " + sheetName, e);
+        return [];
     }
 }
 
@@ -146,13 +202,16 @@ function renderTableResultados(dataArray) {
     const container = document.getElementById("resultsContainer");
     let html = `<table><tr><th>Fecha</th><th>Grupo</th><th>Ganador</th><th>Perdedor</th><th>Dif</th></tr>`;
     dataArray.forEach(r => {
-        let displayDiff = r.diff;
+        let displayDiff = r.Diferencia;
         let diffClass = "";
         if (jugadorFiltradoActual) {
-            if (r.perdedor.trim() === jugadorFiltradoActual.trim()) { displayDiff = "-" + r.diff; diffClass = "neg-diff"; }
-            else if (r.ganador.trim() === jugadorFiltradoActual.trim()) { displayDiff = "+" + r.diff; diffClass = "pos-diff"; }
+            const g = (r.NombreRes || "").trim();
+            const p = (r.Perdedor || "").trim();
+            const act = jugadorFiltradoActual.trim();
+            if (p === act) { displayDiff = "-" + r.Diferencia; diffClass = "neg-diff"; }
+            else if (g === act) { displayDiff = "+" + r.Diferencia; diffClass = "pos-diff"; }
         }
-        html += `<tr><td>${r.fecha}</td><td>${r.grupo}</td><td style="font-weight:bold">${r.ganador}</td><td>${r.perdedor}</td><td class="${diffClass}">${displayDiff}</td></tr>`;
+        html += `<tr><td>${r.Fecha}</td><td>${r.GrupoRes}</td><td style="font-weight:bold">${r.NombreRes}</td><td>${r.Perdedor}</td><td class="${diffClass}">${displayDiff}</td></tr>`;
     });
     container.innerHTML = html + "</table>";
 }
@@ -160,7 +219,7 @@ function renderTableResultados(dataArray) {
 function filtrarPorJugador(nombre, desdeDonde) {
     origenFiltro = desdeDonde;
     jugadorFiltradoActual = nombre; 
-    const filtrados = allMatches.filter(m => (m.ganador && m.ganador.trim() === nombre.trim()) || (m.perdedor && m.perdedor.trim() === nombre.trim()));
+    const filtrados = allMatches.filter(m => (m.NombreRes && m.NombreRes.trim() === nombre.trim()) || (m.Perdedor && m.Perdedor.trim() === nombre.trim()));
     document.getElementById('resTitulo').innerText = "Partidos de: " + nombre;
     document.getElementById('resetFilterContainer').style.display = 'block';
     document.getElementById('btnAgregarRes').style.display = 'none';
@@ -174,67 +233,119 @@ function regresarAOrigen() {
     document.getElementById('resTitulo').innerText = "Resultados del Torneo";
     document.getElementById('resetFilterContainer').style.display = 'none';
     document.getElementById('btnAgregarRes').style.display = 'inline-block';
-    document.getElementById('btnAgregarRes').innerHTML = '➕ Agregar Resultado';
+    document.getElementById('btnAgregarRes').innerHTML = '➕ Capturar Resultado';
     document.getElementById('btnAgregarRes').style.background = '#145a32';
     renderTableResultados(allMatches); 
     showTab(origenFiltro);
 }
 
-function mostrarNoticiasManuales(datosNoticias) {
-    const contenedor = document.getElementById("contenedorNoticias");
+// RENDERIZAR PLAYOFFS
+function mostrarPlayoffs(datos) {
+    const contenedor = document.getElementById("bracketContainer");
     if (!contenedor) return;
+    if (datos.length === 0) {
+        contenedor.innerHTML = "<p style='color:#666; font-style:italic;'>Las llaves de eliminación se publicarán al concluir la fase de grupos.</p>";
+        return;
+    }
 
-    let htmlNoticias = "";
-    const noticiasOrdenadas = [...datosNoticias].reverse(); 
-
-    noticiasOrdenadas.forEach(n => {
-        let color = "#145a32"; 
-        if(n.etiqueta.toLowerCase().includes("aviso") || n.etiqueta.toLowerCase().includes("importante")) color = "#d35400";
-        if(n.etiqueta.toLowerCase().includes("resultado")) color = "#2980b9";
-
-        // PASO A: Limpiamos el texto de posibles espacios dobles que estorben
-        let relatoLimpio = n.relato.trim();
-
-        // PASO B: Convertimos saltos de línea en <br>
-        let relatoConSaltos = relatoLimpio.replace(/(\r\n|\n|\r)/g, '<br>');
-
-        
-
-        htmlNoticias += `
-        <div class="news-card" style="border-left: 5px solid ${color}; margin-bottom: 30px; padding: 25px; background: #fff; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <span class="news-tag" style="background: ${color}; color: white; padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: bold;">${n.etiqueta}</span>
-                <span style="color: #888; font-size: 12px;">${n.fecha}</span>
-            </div>
-            <h3 style="margin: 0 0 15px 0; color: #0b3d2e; font-weight: 900; font-size: 1.5em; line-height: 1.2;">${n.titular}</h3>
-            <div class="news-content" style="line-height: 1.8; color: #333; font-size: 16px; text-align: justify;">
-                ${relatoConSaltos}
-            </div>
-        </div>`;
+    // Agrupar por fase
+    const fases = {};
+    datos.forEach(l => {
+        const faseName = l.Fase || "Fase Final";
+        if (!fases[faseName]) fases[faseName] = [];
+        fases[faseName].push(l);
     });
 
-    contenedor.innerHTML = htmlNoticias;
-}
+    // Orden lógico sugerido (puedes ajustar los nombres según escribas en Sheets)
+    const ordenFases = ["Repechaje", "Octavos de Final", "Cuartos de Final", "Semifinal", "Final", "Tercer Lugar"];
     
+    let html = `<div class="bracket-container">`;
+    
+    // Primero renderizar en el orden definido
+    ordenFases.forEach(f => {
+        if (fases[f]) { html += crearBloqueFase(f, fases[f]); delete fases[f]; }
+    });
+    // Luego renderizar cualquier otra fase que no estuviera en la lista
+    Object.keys(fases).forEach(f => {
+        html += crearBloqueFase(f, fases[f]);
+    });
+
+    contenedor.innerHTML = html + `</div>`;
+}
+
+function crearBloqueFase(nombreFase, partidos) {
+    let html = `<div class="phase-block"><div class="phase-title">${nombreFase}</div><div class="matches-grid">`;
+    partidos.forEach(m => {
+        const j1 = m.Jugador1 || "TBD";
+        const j2 = m.Jugador2 || "TBD";
+        const winner = m.Ganador ? m.Ganador.trim() : "";
+        
+        let c1 = "", c2 = "";
+        if (winner) {
+            if (winner === j1.trim()) { c1 = "winner"; c2 = "loser"; }
+            else if (winner === j2.trim()) { c2 = "winner"; c1 = "loser"; }
+        }
+
+        html += `
+        <div class="match-card">
+            <div class="match-player ${c1}"><span>${j1}</span></div>
+            <div class="vs-divider"></div>
+            <div class="match-player ${c2}"><span>${j2}</span></div>
+            ${m.Resultado ? `<div class="match-result">${m.Resultado}</div>` : ''}
+        </div>`;
+    });
+    return html + `</div></div>`;
+}
+
+// RENDERIZAR NOTICIAS
+function mostrarNoticias(datos) {
+    const contenedor = document.getElementById("contenedorNoticias");
+    if (!contenedor) return;
+    if (datos.length === 0) {
+        contenedor.innerHTML = "<p>Sin noticias publicadas.</p>";
+        return;
+    }
+
+    let html = "";
+    [...datos].reverse().forEach(n => {
+        if(!n.Relato) return;
+        let color = "#145a32";
+        const eti = (n.Etiqueta || "").toLowerCase();
+        if(eti.includes("aviso") || eti.includes("importante")) color = "#d35400";
+        if(eti.includes("resultado")) color = "#2980b9";
+
+        html += `
+        <div class="news-card" style="border-left-color: ${color}">
+            <span class="news-tag" style="background: ${color}">${n.Etiqueta || 'Crónica'}</span>
+            <span class="news-date">${n.Fecha || ''}</span>
+            <div class="news-title">${n.Titular || ''}</div>
+            <div class="news-content">${n.Relato}</div>
+        </div>`;
+    });
+    contenedor.innerHTML = html;
+}
+
+// INICIALIZACIÓN
 async function inicializar() {
     try {
-        const resRes = await fetch(sheetURL + "&t=" + new Date().getTime());
-        let resText = await resRes.text();
-        resText = resText.replace(/"/g, ''); 
-        const resRows = resText.trim().split("\n").map(r => r.split(","));
-        const h = resRows[0];
-        const idxF = h.indexOf("Fecha"), idxG = h.indexOf("GrupoRes"), idxW = h.indexOf("NombreRes"), idxL = h.indexOf("Perdedor"), idxD = h.indexOf("Diferencia");
+        // --- CONTROL DE VISIBILIDAD DE PLAYOFFS ---
+        const hoy = new Date();
+        if (hoy >= fechaInicioPlayoffs && hoy <= fechaFinPlayoffs) {
+            document.getElementById('nav-playoffs').style.display = 'block';
+        }
 
-        allMatches = resRows.slice(1).map(cols => ({
-            fecha: cols[idxF] || "", grupo: cols[idxG] || "", ganador: cols[idxW] || "", perdedor: cols[idxL] || "", diff: cols[idxD] || ""
-        })).filter(m => m.ganador !== "").sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+        // 1. RESULTADOS
+        allMatches = await fetchSheetJSON("Resultados");
+        allMatches = allMatches.filter(m => m.NombreRes && m.NombreRes !== "").sort((a,b) => new Date(b.Fecha) - new Date(a.Fecha));
 
+        // 2. LEADERBOARD
         let players = {};
         allMatches.forEach(m => {
-            if(!players[m.ganador]) players[m.ganador] = {nombre:m.ganador, grupo:m.grupo, jj:0, jg:0, diff:0};
-            if(!players[m.perdedor]) players[m.perdedor] = {nombre:m.perdedor, grupo:m.grupo, jj:0, jg:0, diff:0};
-            players[m.ganador].jj++; players[m.ganador].jg++; players[m.ganador].diff += Number(m.diff);
-            players[m.perdedor].jj++; players[m.perdedor].diff -= Number(m.diff);
+            const g = m.NombreRes, p = m.Perdedor, gr = m.GrupoRes, d = Number(m.Diferencia);
+            if(!players[g]) players[g] = {nombre:g, grupo:gr, jj:0, jg:0, diff:0};
+            if(!players[p]) players[p] = {nombre:p, grupo:gr, jj:0, jg:0, diff:0};
+            players[g].jj++; players[g].jg++; players[g].diff += d;
+            players[p].jj++; players[p].diff -= d;
         });
 
         let groups = {};
@@ -243,62 +354,40 @@ async function inicializar() {
         let lbHtml = "";
         Object.keys(groups).sort().forEach(g => {
             const sorted = groups[g].sort((a,b) => b.jg - a.jg || b.diff - a.diff);
-            lbHtml += `<div class="groupTitle">Grupo ${g}</div><table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>`;
+            lbHtml += `<div class="groupTitle">Grupo ${g}</div><div class="table-wrapper"><table><tr><th>Pos</th><th>Jugador</th><th>JJ</th><th>JG</th><th>Dif</th></tr>`;
             sorted.forEach((p, i) => {
                 globalLeaderboard[p.nombre] = { pos: i+1, grupo: g };
                 const cl = i===0 ? 'firstPlace' : (i===1 ? 'secondPlace' : '');
                 lbHtml += `<tr class="${cl}"><td>${i+1}</td><td class="clickable-name" onclick="filtrarPorJugador('${p.nombre}', 'leaderboard')">${p.nombre}</td><td>${p.jj}</td><td>${p.jg}</td><td>${p.diff}</td></tr>`;
             });
-            lbHtml += "</table>";
+            lbHtml += "</table></div>";
         });
         document.getElementById("groupsContainer").innerHTML = lbHtml;
-
         renderTableResultados(allMatches);
 
-        const pRes = await fetch(playersSheetURL + "&t=" + new Date().getTime());
-        let pText = await pRes.text();
-        pText = pText.replace(/"/g, ''); 
-        const pRows = pText.trim().split("\n").map(r => r.split(","));
-        const ph = pRows[0];
-        const idxN = ph.findIndex(x => x && x.toLowerCase().includes("nombre")), idxGr = ph.findIndex(x => x && x.toLowerCase().includes("grupo")), idxGh = ph.findIndex(x => x && x.toLowerCase().includes("ghin"));
-        let pHtml = "<table><tr><th>Grupo</th><th>Jugador</th><th>GHIN</th></tr>";
-        pRows.slice(1).sort((a,b) => (a[idxGr]||'').localeCompare(b[idxGr]||'') || (a[idxN]||'').localeCompare(b[idxN]||'')).forEach(cols => {
-            if(cols[idxN]) pHtml += `<tr><td>${cols[idxGr] || ''}</td><td class="clickable-name" onclick="filtrarPorJugador('${cols[idxN]}', 'jugadores')">${cols[idxN]}</td><td>${cols[idxGh] || ''}</td></tr>`;
+        // 3. JUGADORES
+        const pData = await fetchSheetJSON("Participantes");
+        let pHtml = "<div class='table-wrapper'><table><tr><th>Grupo</th><th>Jugador</th><th>GHIN</th></tr>";
+        pData.sort((a,b) => (a.Grupo||'').localeCompare(b.Grupo||'') || (a.Nombre||'').localeCompare(b.Nombre||'')).forEach(p => {
+            if(p.Nombre) pHtml += `<tr><td>${p.Grupo || ''}</td><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')">${p.Nombre}</td><td>${p.GHIN || ''}</td></tr>`;
         });
-        document.getElementById("playersContainer").innerHTML = pHtml + "</table>";
+        document.getElementById("playersContainer").innerHTML = pHtml + "</table></div>";
 
-        // --- SECCIÓN: DESCARGAR NOTICIAS MANUALES (CORREGIDA) ---
-const nRes = await fetch(newsSheetURL + "&t=" + new Date().getTime());
-let nText = await nRes.text();
+        // 4. NOTICIAS
+        const nData = await fetchSheetJSON("Noticias");
+        mostrarNoticias(nData);
 
-// Usamos una técnica para extraer el JSON puro de Google Sheets
-const nJson = JSON.parse(nText.substring(47, nText.length - 2));
-const nh = nJson.table.cols.map(c => c.label); // Obtener encabezados
-const nRows = nJson.table.rows;
+        // 5. PLAYOFFS (LLAVES)
+        const llavesData = await fetchSheetJSON("Llaves");
+        mostrarPlayoffs(llavesData);
 
-const idxNF = nh.indexOf("Fecha"), 
-      idxNE = nh.indexOf("Etiqueta"), 
-      idxNT = nh.indexOf("Titular"), 
-      idxNR = nh.indexOf("Relato");
-
-let allNews = [];
-
-if (nRows.length > 0) {
-    allNews = nRows.map(row => ({
-        fecha: row.c[idxNF] ? (row.c[idxNF].f || row.c[idxNF].v) : "",
-        etiqueta: row.c[idxNE] ? row.c[idxNE].v : "Crónica",
-        titular: row.c[idxNT] ? row.c[idxNT].v : "",
-        relato: row.c[idxNR] ? row.c[idxNR].v : ""
-    })).filter(n => n.relato !== ""); // Ignora filas vacías
+    } catch (e) { 
+        document.getElementById("groupsContainer").innerHTML = "<div style='color:red;text-align:center;'>Error de conexión. Verifica que el archivo de Sheets sea público.</div>"; 
+        console.error(e);
+    }
 }
 
-mostrarNoticiasManuales(allNews);
-// --- FIN SECCIÓN NOTICIAS ---
-
-    } catch (e) { document.getElementById("groupsContainer").innerHTML = "Error al cargar datos."; console.log(e); }
-}
-
-inicializar();
+window.onload = inicializar;
 </script>
 </body>
 </html>
