@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-/**** nueva versión espero que funcione ****/
+/**** dice que ahora si 444 lineas****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -141,7 +141,7 @@
 
 <script>
 const sheetID = "1KkAMMyeqJVZiKBnFhce3BoxWLIChlUcVLG5pVmLWS88"; 
-const baseGviz = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:json";
+const baseGviz = "https://docs.google.com/spreadsheets/d/" + sheetID + "/gviz/tq?tqx=out:json&headers=1";
 
 // --- CONFIGURACIÓN DE FECHAS DE PLAYOFFS ---
 const fechaInicioPlayoffs = new Date("2025-10-15T00:00:00"); // Cuándo inicia el repechaje
@@ -174,28 +174,40 @@ function toggleRadar() {
     }
 }
 
-// Lector Universal JSON - AHORA CON ALERTA DE ERRORES INTELIGENTE
+// Lector Universal JSON Mejorado (A prueba de espacios y errores de títulos en Excel)
 async function fetchSheetJSON(sheetName) {
     const response = await fetch(`${baseGviz}&sheet=${sheetName}&t=${new Date().getTime()}`);
     const text = await response.text();
     
-    // Si Google nos manda un error, detenemos todo y avisamos
     if (text.includes('"status":"error"')) {
         console.error("Error de Google Sheets en la pestaña: " + sheetName, text);
-        throw new Error(`La pestaña "<b>${sheetName}</b>" no existe en el Excel o tiene un error. Revisa que esté escrita exactamente así, respetando mayúsculas y sin espacios al final.`);
+        throw new Error(`La pestaña "<b>${sheetName}</b>" no existe en el Excel o tiene un error.`);
     }
     
     try {
         const jsonString = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
         const jsonData = JSON.parse(jsonString);
-        const rows = jsonData.table.rows || [];
-        const cols = jsonData.table.cols.map(c => c.label);
+        let rows = jsonData.table.rows || [];
+        
+        let cols = jsonData.table.cols.map(c => (c.label || "").toString().trim());
+        
+        if ((cols.join("") === "" || cols[0] === "A" || cols[0] === "Col1") && rows.length > 0) {
+            cols = rows[0].c.map(cell => cell ? (cell.v || cell.f || "").toString().trim() : "");
+            rows.shift(); 
+        }
         
         return rows.map(row => {
             let obj = {};
             if(row && row.c) {
                 row.c.forEach((cell, i) => {
-                    obj[cols[i]] = cell ? (cell.f !== null ? cell.f : cell.v) : "";
+                    let columnName = cols[i] || `Col${i}`;
+                    let val = cell ? (cell.f !== null && cell.f !== undefined ? cell.f : cell.v) : "";
+                    
+                    obj[columnName.trim()] = val; 
+                    
+                    // Traductor Inteligente: Creamos una versión del título sin espacios y en minúscula
+                    let safeKey = columnName.trim().replace(/\s+/g, '').toLowerCase();
+                    obj[safeKey] = val;
                 });
             }
             return obj;
@@ -339,9 +351,15 @@ async function inicializar() {
             document.getElementById('nav-playoffs').style.display = 'block';
         }
 
-        // 1. RESULTADOS
-        allMatches = await fetchSheetJSON("Resultados");
-        allMatches = allMatches.filter(m => m.NombreRes && m.NombreRes !== "").sort((a,b) => new Date(b.Fecha) - new Date(a.Fecha));
+        // 1. RESULTADOS (Conectado al Traductor Inteligente)
+        let rawMatches = await fetchSheetJSON("Resultados");
+        allMatches = rawMatches.map(m => ({
+            Fecha: m.fecha || m.Fecha || "",
+            GrupoRes: m.grupores || m.grupo || m.GrupoRes || "",
+            NombreRes: m.nombreres || m.ganador || m.NombreRes || "",
+            Perdedor: m.perdedor || m.Perdedor || "",
+            Diferencia: m.diferencia || m.diff || m.Diferencia || ""
+        })).filter(m => m.NombreRes !== "").sort((a,b) => new Date(b.Fecha) - new Date(a.Fecha));
 
         // 2. LEADERBOARD
         if (allMatches.length === 0) {
@@ -376,7 +394,13 @@ async function inicializar() {
         renderTableResultados(allMatches);
 
         // 3. JUGADORES
-        const pData = await fetchSheetJSON("Participantes");
+        let rawPlayers = await fetchSheetJSON("Participantes");
+        let pData = rawPlayers.map(p => ({
+            Nombre: p.nombre || p.Nombre || "",
+            Grupo: p.grupo || p.Grupo || "",
+            GHIN: p.ghin || p.GHIN || ""
+        }));
+        
         let pHtml = "<div class='table-wrapper'><table><tr><th>Grupo</th><th>Jugador</th><th>GHIN</th></tr>";
         pData.sort((a,b) => (a.Grupo||'').localeCompare(b.Grupo||'') || (a.Nombre||'').localeCompare(b.Nombre||'')).forEach(p => {
             if(p.Nombre) pHtml += `<tr><td>${p.Grupo || ''}</td><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')">${p.Nombre}</td><td>${p.GHIN || ''}</td></tr>`;
@@ -384,15 +408,27 @@ async function inicializar() {
         document.getElementById("playersContainer").innerHTML = pHtml + "</table></div>";
 
         // 4. NOTICIAS
-        const nData = await fetchSheetJSON("Noticias");
+        let rawNews = await fetchSheetJSON("Noticias");
+        let nData = rawNews.map(n => ({
+            Fecha: n.fecha || n.Fecha || "",
+            Etiqueta: n.etiqueta || n.Etiqueta || "",
+            Titular: n.titular || n.Titular || "",
+            Relato: n.relato || n.Relato || ""
+        }));
         mostrarNoticias(nData);
 
         // 5. PLAYOFFS (LLAVES)
-        const llavesData = await fetchSheetJSON("Llaves");
+        let rawLlaves = await fetchSheetJSON("Llaves");
+        let llavesData = rawLlaves.map(l => ({
+            Fase: l.fase || l.Fase || "",
+            Jugador1: l.jugador1 || l.Jugador1 || "",
+            Jugador2: l.jugador2 || l.Jugador2 || "",
+            Resultado: l.resultado || l.Resultado || "",
+            Ganador: l.ganador || l.Ganador || ""
+        }));
         mostrarPlayoffs(llavesData);
 
     } catch (e) { 
-        // ALERTA DE ERROR INTELIGENTE
         document.getElementById("groupsContainer").innerHTML = `
             <div style='color:#c0392b; background:#fdf5e6; padding:25px; border-radius:8px; text-align:center; font-weight:bold; border: 2px solid #e67e22;'>
                 ⚠️ ERROR DETECTADO<br><br>
