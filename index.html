@@ -13,6 +13,9 @@
 <link rel="apple-touch-icon" href="SMP Circular.png">
 <link rel="icon" type="image/png" href="SMP Circular.png">
 
+<!-- NUEVO: Conectamos el acta de nacimiento de la App -->
+<link rel="manifest" href="manifest.json">
+
 <title>Senior Match Play La Herradura</title>
 <style>
     body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin:0;background:#f4f6f7;color:#333;}
@@ -555,6 +558,15 @@ async function inicializar() {
 }
 
 window.onload = inicializar;
+
+// NUEVO: Arrancamos el "motor" (Service Worker) cuando cargue la página
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado exitosamente.', reg))
+        .catch(err => console.log('Error al registrar Service Worker.', err));
+    });
+}
 </script>
 </body>
 </html>
