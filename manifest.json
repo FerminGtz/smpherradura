@@ -1,0 +1,21 @@
+{
+  "name": "Senior Match Play La Herradura",
+  "short_name": "SMP Herradura",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0b3d2e",
+  "theme_color": "#0b3d2e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "SMP Circular.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "SMP Circular.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
