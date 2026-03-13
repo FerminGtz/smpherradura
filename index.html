@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-/**** es la version vie 13 7:44 ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -466,9 +465,6 @@ async function inicializar() {
             });
             document.getElementById("groupsContainer").innerHTML = lbHtml;
         }
-        
-        // Tabla de Resultados muestra TODOS los partidos (Regulares + Playoffs)
-        renderTableResultados(allMatches);
 
         // 3. JUGADORES
         let rawPlayers = await fetchSheetJSON("Participantes");
@@ -518,11 +514,24 @@ async function inicializar() {
                 if (matchEncontrado) {
                     llave.Ganador = matchEncontrado.NombreRes;
                     llave.Resultado = matchEncontrado.Diferencia ? ("Dif: " + matchEncontrado.Diferencia) : "Ganó";
+                    
+                    // MAGIA NUEVA: Le inyectamos el nombre de la fase (Repechaje, Cuartos, etc.) al historial
+                    matchEncontrado.GrupoRes = llave.Fase;
                 }
             }
         });
 
+        // RESPALDO: Si hay algún partido de playoffs que no conectó con una llave, dirá "Playoffs"
+        playoffMatches.forEach(m => {
+            if (!m.GrupoRes || m.GrupoRes.toString().trim() === "") {
+                m.GrupoRes = "Playoffs";
+            }
+        });
+
         mostrarPlayoffs(llavesData);
+
+        // MOVIDO AQUÍ: Renderizamos la tabla de resultados HASTA EL FINAL para que ya incluya las Fases
+        renderTableResultados(allMatches);
 
     } catch (e) { 
         document.getElementById("groupsContainer").innerHTML = `
