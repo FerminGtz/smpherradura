@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-/**** v03141129 ****/
+/**** 03141303 PSW ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -16,7 +16,7 @@
 
 <title>Senior Match Play La Herradura</title>
 <style>
-    /* ----- ESTILOS BASE (MODO CLARO POR DEFECTO) ----- */
+    /* ----- ESTILOS BASE ----- */
     body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin:0;background:#f4f6f7;color:#333; transition: background 0.3s, color 0.3s;}
     header{background:#0b3d2e;color:white;padding:25px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
     header img{width:140px;margin-bottom:10px;border-radius:50%;background:white;padding:5px;}
@@ -71,36 +71,54 @@
     footer{background:#0b3d2e;color:white;text-align:center;padding:30px;margin-top:50px;}
     .iframe-radar { width: 100%; max-width: 480px; height: 650px; border-radius: 12px; border: 1px solid #ddd; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
 
+    /* ----- PANTALLA DE LOGIN ----- */
+    #loginOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0b3d2e; z-index:99999; justify-content:center; align-items:center; flex-direction:column; padding:20px; box-sizing:border-box; }
+    .login-box { background:white; padding:35px 25px; border-radius:12px; max-width:380px; width:100%; text-align:center; box-shadow:0 15px 30px rgba(0,0,0,0.4); }
+    .login-box input { width:100%; padding:14px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; font-size:15px; }
+    .login-box button { background:#f1c40f; color:#0b3d2e; width:100%; padding:14px; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; transition:0.3s; margin-top: 10px; }
+    .login-box button:hover { background:#d4ac0d; transform: translateY(-2px); }
 
     /* ----- MODO OSCURO INTELIGENTE ----- */
     @media (prefers-color-scheme: dark) {
         body { background: #121212; color: #e0e0e0; }
         .card { background: #1e1e1e; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         h2 { border-bottom: 2px solid #333; color: #81c784; } 
-        
         table th { background: #0b3d2e; color: #fff; } 
         table td { border-bottom: 1px solid #333; color: #e0e0e0; }
-        
         .groupTitle { background: #2c2c2c; border-left: 6px solid #81c784; color: #81c784; }
         .firstPlace { background: #1b3a2a; } 
         .secondPlace { background: #3a2a18; } 
-        
         .clickable-name { color: #81c784; }
         .clickable-name:hover { background: #2c2c2c; color: #a5d6a7; }
-        
         .phase-block { background: #121212; border-color: #333; }
         .match-card { background: #1e1e1e; border-color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
-        
         .winner { background: #1b3a2a; color: #81c784; border-left: 4px solid #27ae60; }
         .loser { color: #666; }
         .vs-divider { border-top: 1px dashed #444; }
         .match-result { background: #3a2a18; color: #ffb74d; }
-        
         .iframe-radar { border-color: #444; opacity: 0.95; }
+        
+        .login-box { background:#1e1e1e; color:#e0e0e0; }
+        .login-box h2 { color:#81c784; border-bottom: none; }
+        .login-box input { background:#333; border:1px solid #555; color:white; }
     }
 </style>
 </head>
 <body>
+
+<div id="loginOverlay">
+    <div class="login-box">
+        <img src="SMP Circular.png" alt="Logo" width="100" style="margin-bottom:15px; border-radius:50%; background:white; padding:5px;">
+        <h2>Acceso a Jugadores</h2>
+        <p style="font-size:14px; margin-bottom:25px; opacity: 0.8;">Ingresa tus datos para acceder a la plataforma del torneo.</p>
+        
+        <input type="email" id="loginEmail" placeholder="Tu Correo Electrónico" required>
+        <input type="text" id="loginGhin" placeholder="Tu Número GHIN" required>
+        
+        <button id="btnIngresar" onclick="validarAcceso()">Ingresar a la App</button>
+        <p id="loginError" style="color:#e74c3c; font-size:13px; margin-top:15px; display:none; font-weight:bold;"></p>
+    </div>
+</div>
 
 <header>
     <img src="SMP Circular.png" alt="Logo SMP" onerror="this.style.display='none'">
@@ -199,6 +217,49 @@ let globalLeaderboard = {};
 let origenFiltro = 'leaderboard';
 let jugadorFiltradoActual = null; 
 
+// --- FUNCIÓN DE LOGIN INTELIGENTE ---
+async function validarAcceso() {
+    const email = document.getElementById("loginEmail").value.trim();
+    const ghin = document.getElementById("loginGhin").value.trim();
+    const errorMsg = document.getElementById("loginError");
+    const btn = document.getElementById("btnIngresar");
+    
+    if (!email || !email.includes('@') || !ghin) {
+        errorMsg.innerText = "Por favor, ingresa un correo válido y tu GHIN.";
+        errorMsg.style.display = "block";
+        return;
+    }
+
+    btn.innerText = "Verificando jugador...";
+    errorMsg.style.display = "none";
+
+    try {
+        // Conecta al Excel para verificar si el GHIN existe
+        let rawPlayers = await fetchSheetJSON("Participantes");
+        let jugadorValido = rawPlayers.find(p => (p.ghin || p.GHIN || "").toString().trim() === ghin);
+
+        if (jugadorValido) {
+            // ¡Pase exitoso! Guardamos su sesión en el celular
+            localStorage.setItem("smp_acceso", "permitido");
+            localStorage.setItem("smp_email", email);
+            localStorage.setItem("smp_ghin", ghin);
+            localStorage.setItem("smp_nombre", jugadorValido.nombre || jugadorValido.Nombre || "");
+            
+            // Ocultamos el candado y arrancamos la App
+            document.getElementById("loginOverlay").style.display = "none";
+            inicializar();
+        } else {
+            errorMsg.innerText = "GHIN no encontrado. Verifica tu número.";
+            errorMsg.style.display = "block";
+            btn.innerText = "Ingresar a la App";
+        }
+    } catch(e) {
+        errorMsg.innerText = "Error de conexión. Intenta nuevamente.";
+        errorMsg.style.display = "block";
+        btn.innerText = "Ingresar a la App";
+    }
+}
+
 function showTab(tabId){
     document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
     document.querySelectorAll('#mainNav a').forEach(a => a.classList.remove('active-tab'));
@@ -221,7 +282,6 @@ function toggleRadar() {
         btn.style.background = '#145a32';
         
         document.getElementById("resultsContainer").innerHTML = "<p style='text-align:center; font-weight:bold; opacity: 0.8;'>🔄 Sincronizando nuevos resultados...</p>";
-        // Aumentamos el tiempo de espera a 3.5 segundos para que Google Sheets termine de procesar
         setTimeout(() => { inicializar(); }, 3500);
     }
 }
@@ -240,7 +300,6 @@ function toggleRadarPlayoffs() {
         btn.style.background = '#145a32';
         
         document.getElementById("bracketContainer").innerHTML = "<p style='text-align:center; font-weight:bold; opacity: 0.8;'>🔄 Actualizando llaves de eliminación...</p>";
-        // Aumentamos el tiempo de espera a 3.5 segundos para que Google Sheets termine de procesar
         setTimeout(() => { inicializar(); }, 3500);
     }
 }
@@ -410,7 +469,6 @@ function mostrarNoticias(datos) {
     contenedor.innerHTML = html;
 }
 
-// INICIALIZACIÓN PRINCIPAL
 async function inicializar() {
     try {
         let rawFechas = await fetchSheetJSON("Calendario");
@@ -562,15 +620,23 @@ async function inicializar() {
     }
 }
 
-window.onload = inicializar;
+// --- VERIFICACIÓN DE SESIÓN AL CARGAR LA PÁGINA ---
+window.onload = function() {
+    // Revisa si ya le dimos pase VIP antes
+    if (localStorage.getItem("smp_acceso") === "permitido") {
+        document.getElementById("loginOverlay").style.display = "none";
+        inicializar(); // Arranca la app normal
+    } else {
+        // Bloquea la pantalla hasta que ponga datos correctos
+        document.getElementById("loginOverlay").style.display = "flex";
+    }
 
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
+    if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
-        .then(reg => console.log('Service Worker registrado exitosamente.', reg))
+        .then(reg => console.log('Service Worker registrado exitosamente.'))
         .catch(err => console.log('Error al registrar Service Worker.', err));
-    });
-}
+    }
+};
 </script>
 </body>
 </html>
