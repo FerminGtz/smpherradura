@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-/****V03141116 ****/
+/**** V03141124 ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -221,7 +221,8 @@ function toggleRadar() {
         btn.style.background = '#145a32';
         
         document.getElementById("resultsContainer").innerHTML = "<p style='text-align:center; font-weight:bold; opacity: 0.8;'>🔄 Sincronizando nuevos resultados...</p>";
-        setTimeout(() => { inicializar(); }, 1200);
+        // Aumentamos el tiempo de espera a 3.5 segundos para que Google Sheets termine de procesar
+        setTimeout(() => { inicializar(); }, 3500);
     }
 }
 
@@ -239,7 +240,8 @@ function toggleRadarPlayoffs() {
         btn.style.background = '#145a32';
         
         document.getElementById("bracketContainer").innerHTML = "<p style='text-align:center; font-weight:bold; opacity: 0.8;'>🔄 Actualizando llaves de eliminación...</p>";
-        setTimeout(() => { inicializar(); }, 1200);
+        // Aumentamos el tiempo de espera a 3.5 segundos para que Google Sheets termine de procesar
+        setTimeout(() => { inicializar(); }, 3500);
     }
 }
 
