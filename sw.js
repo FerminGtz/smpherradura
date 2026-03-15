@@ -1,4 +1,4 @@
-const CACHE_NAME = 'smp-cache-v1';
+const CACHE_NAME = 'smp-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -10,10 +10,12 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Archivos en caché guardados');
+        console.log('Archivos en caché guardados versión 2');
         return cache.addAll(urlsToCache);
       })
   );
+  // Fuerza a que el nuevo Service Worker tome el control inmediatamente
+  self.skipWaiting();
 });
 
 // Interceptar peticiones para que cargue ultra rápido
@@ -25,4 +27,21 @@ self.addEventListener('fetch', event => {
         return response || fetch(event.request);
       })
   );
+});
+
+// Limpiar cachés viejos cuando se activa una nueva versión
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Borrando caché antiguo:', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clients.claim();
 });
