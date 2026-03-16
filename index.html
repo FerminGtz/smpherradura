@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-/**** 03141929 jugadores en orden ****/
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -235,7 +234,13 @@ async function validarAcceso() {
 
     try {
         let rawPlayers = await fetchSheetJSON("Participantes");
-        let jugadorValido = rawPlayers.find(p => (p.ghin || p.GHIN || "").toString().trim() === ghin);
+        
+        // LA MAGIA ESTÁ AQUÍ: Convertimos a String explícitamente y quitamos espacios a ambos lados
+        let jugadorValido = rawPlayers.find(p => {
+            let ghinExcel = String(p.ghin || p.GHIN || "").trim();
+            let ghinInput = String(ghin).trim();
+            return ghinExcel === ghinInput;
+        });
 
         if (jugadorValido) {
             localStorage.setItem("smp_acceso", "permitido");
@@ -488,7 +493,11 @@ async function inicializar() {
         }
 
         const hoy = new Date();
-        if (hoy >= fechaInicioPlayoffs && hoy <= fechaFinPlayoffs) {
+        
+        // NUEVO: Candado duro local. Mes 2 es Marzo (Enero=0, Feb=1, Mar=2), Día 16.
+        const candadoEstricto = new Date(2026, 2, 16, 0, 0, 0); 
+
+        if (hoy >= candadoEstricto && hoy >= fechaInicioPlayoffs && hoy <= fechaFinPlayoffs) {
             document.getElementById('nav-playoffs').style.display = 'block';
         }
 
