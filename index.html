@@ -408,12 +408,16 @@ function mostrarPlayoffs(datos) {
         fases[faseName].push(l);
     });
 
-    const ordenFases = ["Repechaje", "Octavos de Final", "Cuartos de Final", "Semifinal", "Final", "Tercer Lugar"];
+    // AQUÍ ESTÁ EL CAMBIO: Invertimos el orden para que lo actual/próximo salga primero
+    const ordenFases = ["Final", "Tercer Lugar", "Semifinal", "Cuartos de Final", "Octavos de Final", "Repechaje"];
+    
     let html = `<div class="bracket-container">`;
     
     ordenFases.forEach(f => {
         if (fases[f]) { html += crearBloqueFase(f, fases[f]); delete fases[f]; }
     });
+    
+    // Si llegaras a poner otro nombre en tu Excel que no esté en la lista, lo pondrá al final
     Object.keys(fases).forEach(f => {
         html += crearBloqueFase(f, fases[f]);
     });
