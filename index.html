@@ -402,26 +402,25 @@ function mostrarPlayoffs(datos) {
     }
 
     const fases = {};
-    // Convertimos las llaves del objeto a mayúsculas para que sea estándar
     datos.forEach(l => {
+        // Convertimos a mayúsculas y quitamos espacios extra para no fallar
         const faseName = (l.Fase || "Fase Final").toUpperCase().trim();
         if (!fases[faseName]) fases[faseName] = [];
         fases[faseName].push(l);
     });
 
-    // Definimos el orden de prioridad también en mayúsculas
+    // AQUÍ ESTÁ EL TRUCO: Nombres EXACTOS a como los tienes en tu Excel
     const ordenFases = [
         "FINAL", 
         "TERCER LUGAR", 
         "SEMIFINAL", 
-        "CUARTOS DE FINAL", 
-        "OCTAVOS DE FINAL", 
+        "CUARTOS", 
+        "OCTAVOS", 
         "REPECHAJE"
     ];
     
     let html = `<div class="bracket-container">`;
     
-    // Buscamos cada fase ignorando si el usuario escribió distinto en el Excel
     ordenFases.forEach(f => {
         if (fases[f]) { 
             html += crearBloqueFase(f, fases[f]); 
@@ -429,14 +428,12 @@ function mostrarPlayoffs(datos) {
         }
     });
     
-    // Por si hay alguna fase con nombre extraño que no definimos arriba
     Object.keys(fases).forEach(f => {
         html += crearBloqueFase(f, fases[f]);
     });
 
     contenedor.innerHTML = html + `</div>`;
 }
-
 function crearBloqueFase(nombreFase, partidos) {
     let html = `<div class="phase-block"><div class="phase-title">${nombreFase}</div><div class="matches-grid">`;
     partidos.forEach(m => {
