@@ -338,91 +338,175 @@ function mostrarLogin() {
 }
 
 async function enviarInscripcion() {
- const nombre = document.getElementById("regNombre").value.trim();
- const telefono = document.getElementById("regTelefono").value.trim();
- const correo = document.getElementById("regEmail").value.trim();
- const ghin = document.getElementById("regGhin").value.trim();
 
- // Validar campos obligatorios
-if (!nombre || !telefono || !correo || !ghin) {
- alert("Por favor completa todos los datos de inscripción.");
- return;
+  const nombre = document.getElementById("regNombre").value.trim();
+  const telefono = document.getElementById("regTelefono").value.trim();
+  const correo = document.getElementById("regEmail").value.trim();
+  const ghin = document.getElementById("regGhin").value.trim();
+
+  // Validar campos obligatorios
+  if (!nombre || !telefono || !correo || !ghin) {
+    alert("Por favor completa todos los datos de inscripción.");
+    return;
+  }
+
+  // Validar teléfono: exactamente 10 dígitos
+  if (!/^\d{10}$/.test(telefono)) {
+    alert("El número de teléfono debe contener exactamente 10 dígitos.");
+    document.getElementById("regTelefono").focus();
+    return;
+  }
+
+  // Validar formato del correo electrónico
+  const formatoCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!formatoCorreo.test(correo)) {
+    alert("Por favor captura un correo electrónico válido.");
+    document.getElementById("regEmail").focus();
+    return;
+  }
+
+  const boton = document.querySelector(".mercadoPagoBtn");
+
+  boton.disabled = true;
+  boton.innerText = "Procesando inscripción...";
+
+  try {
+
+    const url =
+      "https://script.google.com/macros/s/AKfycbypc4LngiNNtRC9NWkD9W2azmVc5inx2uhsrBNfvX8Pjdac8zhGK06Fce-tiz6c52HDKw/exec";
+
+    // =====================================================
+    // 1. REGISTRAR / VALIDAR INSCRIPCIÓN
+    // =====================================================
+
+    const respuestaRegistro = await fetch(url, {
+      method: "POST",
+      body: new URLSearchParams({
+        accion: "registrarInscrito",
+        nombre: nombre,
+        telefono: telefono,
+        correo: correo,
+        ghin: ghin
+      })
+    });
+
+    const resultadoRegistro =
+      (await respuestaRegistro.text()).trim();
+
+
+    // -----------------------------------------------------
+    // YA ESTÁ APROBADO Y EXISTE EN PARTICIPANTES
+    // -----------------------------------------------------
+
+    if (resultadoRegistro === "YA_INSCRITO") {
+
+      alert(
+        "Ya estás inscrito en el torneo.\n\n" +
+        "Utiliza tu correo y tu número GHIN para ingresar al portal."
+      );
+
+      boton.disabled = false;
+      boton.innerText = "Pagar con Mercado Pago";
+
+      mostrarLogin();
+
+      return;
+    }
+
+
+    // -----------------------------------------------------
+    // YA REALIZÓ EL PAGO
+    // -----------------------------------------------------
+
+    if (resultadoRegistro === "PAGO_RECIBIDO") {
+
+      alert(
+        "Tu pago ya fue recibido.\n\n" +
+        "Tu inscripción está registrada y no es necesario realizar otro pago."
+      );
+
+      boton.disabled = false;
+      boton.innerText = "Pagar con Mercado Pago";
+
+      return;
+    }
+
+
+    // -----------------------------------------------------
+    // YA ESTÁ REGISTRADO, PERO TODAVÍA NO HA PAGADO
+    // -----------------------------------------------------
+
+    if (resultadoRegistro === "PENDIENTE_EXISTENTE") {
+
+      boton.innerText =
+        "Continuando con tu pago pendiente...";
+    }
+
+    // -----------------------------------------------------
+    // CUALQUIER OTRA RESPUESTA INESPERADA
+    // -----------------------------------------------------
+
+    else if (resultadoRegistro !== "Éxito") {
+
+      throw new Error(resultadoRegistro);
+    }
+
+
+    // =====================================================
+    // 2. CREAR CHECKOUT PRO DE MERCADO PAGO
+    // =====================================================
+
+    boton.innerText =
+      "Conectando con Mercado Pago...";
+
+    const respuestaPago = await fetch(url, {
+      method: "POST",
+      body: new URLSearchParams({
+        accion: "crearPago",
+        nombre: nombre,
+        telefono: telefono,
+        correo: correo,
+        ghin: ghin
+      })
+    });
+
+    const datosPago =
+      await respuestaPago.json();
+
+    if (
+      !datosPago.ok ||
+      !datosPago.urlPago
+    ) {
+
+      throw new Error(
+        "No fue posible crear el pago."
+      );
+    }
+
+
+    // =====================================================
+    // 3. LLEVAR AL JUGADOR A MERCADO PAGO
+    // =====================================================
+
+    window.location.href =
+      datosPago.urlPago;
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "No fue posible iniciar el pago. " +
+      "Intenta nuevamente más tarde."
+    );
+
+    boton.disabled = false;
+    boton.innerText =
+      "Pagar con Mercado Pago";
+  }
 }
-
-// Validar teléfono: exactamente 10 dígitos
-if (!/^\d{10}$/.test(telefono)) {
- alert("El número de teléfono debe contener exactamente 10 dígitos.");
- document.getElementById("regTelefono").focus();
- return;
-}
-
-// Validar formato del correo electrónico
-const formatoCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-if (!formatoCorreo.test(correo)) {
- alert("Por favor captura un correo electrónico válido.");
- document.getElementById("regEmail").focus();
- return;
-}
-
- const boton = document.querySelector(".mercadoPagoBtn");
- boton.disabled = true;
- boton.innerText = "Procesando inscripción...";
-
- try {
- const url = "https://script.google.com/macros/s/AKfycbypc4LngiNNtRC9NWkD9W2azmVc5inx2uhsrBNfvX8Pjdac8zhGK06Fce-tiz6c52HDKw/exec";
-
- // 1. Registrar primero al jugador en INSCRITOS
- const respuestaRegistro = await fetch(url, {
- method: "POST",
- body: new URLSearchParams({
- accion: "registrarInscrito",
- nombre: nombre,
- telefono: telefono,
- correo: correo,
- ghin: ghin
- })
- });
-
- const resultadoRegistro = await respuestaRegistro.text();
-
- if (resultadoRegistro.trim() !== "Éxito") {
- throw new Error(resultadoRegistro);
- }
-
- // 2. Crear el Checkout Pro de Mercado Pago
- boton.innerText = "Conectando con Mercado Pago...";
-
- const respuestaPago = await fetch(url, {
- method: "POST",
- body: new URLSearchParams({
- accion: "crearPago",
- nombre: nombre,
- telefono: telefono,
- correo: correo,
- ghin: ghin
- })
- });
-
- const datosPago = await respuestaPago.json();
-
- if (!datosPago.ok || !datosPago.urlPago) {
- throw new Error("No fue posible crear el pago.");
- }
-
- // 3. Llevar al jugador al Checkout Pro
- window.location.href = datosPago.urlPago;
-} catch (error) {
- console.error(error);
-
- alert(
- "No fue posible iniciar el pago. Tus datos de inscripción quedaron registrados. Intenta nuevamente más tarde."
- );
-
- boton.disabled = false;
- boton.innerText = "Pagar con Mercado Pago";
-}
-}
- 
 function mostrarConfirmacionInscripcion() {
  document.getElementById("registrationFormView").style.display = "none";
  document.getElementById("registrationThankYou").style.display = "block";
