@@ -514,50 +514,130 @@ function mostrarConfirmacionInscripcion() {
 
 // --- FUNCIÓN DE LOGIN INTELIGENTE ---
 async function validarAcceso() {
- const email = document.getElementById("loginEmail").value.trim();
- const ghin = document.getElementById("loginGhin").value.trim();
- const errorMsg = document.getElementById("loginError");
- const btn = document.getElementById("btnIngresar");
- 
- if (!email || !email.includes('@') || !ghin) {
- errorMsg.innerText = "Por favor, ingresa un correo válido y tu GHIN.";
- errorMsg.style.display = "block";
- return;
- }
 
- btn.innerText = "Verificando jugador...";
- errorMsg.style.display = "none";
+  const email = document
+    .getElementById("loginEmail")
+    .value
+    .trim()
+    .toLowerCase();
 
- try {
- let rawPlayers = await fetchSheetJSON("Participantes");
- 
- // LA MAGIA ESTÁ AQUÍ: Convertimos a String explícitamente y quitamos espacios a ambos lados
- let jugadorValido = rawPlayers.find(p => {
- let ghinExcel = String(p.ghin || p.GHIN || "").trim();
- let ghinInput = String(ghin).trim();
- return ghinExcel === ghinInput;
- });
+  const ghin = document
+    .getElementById("loginGhin")
+    .value
+    .trim();
 
- if (jugadorValido) {
- localStorage.setItem("smp_acceso", "permitido");
- localStorage.setItem("smp_email", email);
- localStorage.setItem("smp_ghin", ghin);
- localStorage.setItem("smp_nombre", jugadorValido.nombre || jugadorValido.Nombre || "");
- 
- document.getElementById("loginOverlay").style.display = "none";
- inicializar();
- } else {
- errorMsg.innerText = "GHIN no encontrado. Verifica tu número.";
- errorMsg.style.display = "block";
- btn.innerText = "Ingresar a la App";
- }
- } catch(e) {
- errorMsg.innerText = "Error de conexión. Intenta nuevamente.";
- errorMsg.style.display = "block";
- btn.innerText = "Ingresar a la App";
- }
+  const errorMsg =
+    document.getElementById("loginError");
+
+  const btn =
+    document.getElementById("btnIngresar");
+
+
+  // Validación básica
+  if (!email || !email.includes("@") || !ghin) {
+
+    errorMsg.innerText =
+      "Por favor, ingresa un correo válido y tu GHIN.";
+
+    errorMsg.style.display = "block";
+
+    return;
+  }
+
+
+  btn.innerText = "Verificando jugador...";
+  errorMsg.style.display = "none";
+
+
+  try {
+
+    const rawPlayers =
+      await fetchSheetJSON("Participantes");
+
+
+    // Deben coincidir CORREO + GHIN
+    // dentro del MISMO registro de Participantes.
+    const jugadorValido = rawPlayers.find(p => {
+
+      const correoExcel = String(
+        p.correo ||
+        p.Correo ||
+        ""
+      )
+        .trim()
+        .toLowerCase();
+
+      const ghinExcel = String(
+        p.ghin ||
+        p.GHIN ||
+        ""
+      ).trim();
+
+      return (
+        correoExcel === email &&
+        ghinExcel === ghin
+      );
+    });
+
+
+    if (jugadorValido) {
+
+      localStorage.setItem(
+        "smp_acceso",
+        "permitido"
+      );
+
+      localStorage.setItem(
+        "smp_email",
+        email
+      );
+
+      localStorage.setItem(
+        "smp_ghin",
+        ghin
+      );
+
+      localStorage.setItem(
+        "smp_nombre",
+        jugadorValido.nombre ||
+        jugadorValido.Nombre ||
+        ""
+      );
+
+
+      document
+        .getElementById("loginOverlay")
+        .style.display = "none";
+
+      inicializar();
+
+
+    } else {
+
+      errorMsg.innerText =
+        "Correo o GHIN incorrectos. Verifica tus datos.";
+
+      errorMsg.style.display = "block";
+
+      btn.innerText =
+        "Ingresar a la App";
+    }
+
+
+  } catch (e) {
+
+    console.error(e);
+
+    errorMsg.innerText =
+      "Error de conexión. Intenta nuevamente.";
+
+    errorMsg.style.display = "block";
+
+    btn.innerText =
+      "Ingresar a la App";
+  }
 }
-
+ 
 function showTab(tabId){
  document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
  document.querySelectorAll('#mainNav a').forEach(a => a.classList.remove('active-tab'));
