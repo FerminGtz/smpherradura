@@ -234,6 +234,7 @@
  <a onclick="showTab('resultados')" id="nav-resultados">Resultados</a>
  <a onclick="showTab('noticias')" id="nav-noticias">Noticias </a>
  <a onclick="showTab('contacto')" id="nav-contacto">Contacto</a>
+ <a onclick="showTab('bases')" id="nav-bases">Bases</a>
 </nav>
 
 <section id="leaderboard" class="tab">
@@ -310,6 +311,21 @@
  <a href="https://chat.whatsapp.com/EgCeLLUf7yqJ9vXTMmUZBy?mode=hqctcli" target="_blank" class="whatsappBtn"> Grupo de WhatsApp</a>
  </div>
  </div>
+</section>
+
+ <section id="bases" class="tab" style="display:none">
+  <div class="card">
+    <h2>Bases del Torneo</h2>
+
+    <div style="background:#fff8dc; border-left:5px solid #d4ac0d; padding:15px; margin:15px 0 25px 0; border-radius:6px;">
+      <strong>BASES PRELIMINARES</strong><br>
+      Sujetas a revisión y aprobación final del Comité Organizador.
+    </div>
+
+    <div id="contenedorBases">
+      Cargando bases...
+    </div>
+  </div>
 </section>
 
 <footer>&copy; 2024 Senior Match Play La Herradura</footer>
@@ -1030,6 +1046,92 @@ function mostrarNoticias(datos) {
  contenedor.innerHTML = html;
 }
 
+ function mostrarBases(datos) {
+
+  const contenedor =
+    document.getElementById("contenedorBases");
+
+  if (!contenedor) return;
+
+  if (!datos || datos.length === 0) {
+    contenedor.innerHTML =
+      "<p style='text-align:center; opacity:0.7;'>Bases no disponibles.</p>";
+    return;
+  }
+
+  let html = "";
+  let seccionAnterior = "";
+
+  datos.forEach(fila => {
+
+    const seccion = String(
+      fila["Sección"] ||
+      fila.Seccion ||
+      ""
+    ).trim();
+
+    const contenido = String(
+      fila["Contenido"] ||
+      ""
+    ).trim();
+
+    if (!contenido) return;
+
+    // El aviso preliminar ya aparece arriba,
+    // por lo que no lo repetimos.
+    if (seccion.toUpperCase() === "AVISO") {
+      return;
+    }
+
+    // Título general
+    if (seccion.toUpperCase() === "BASES") {
+
+      html += `
+        <h3 style="
+          color:#145a32;
+          font-size:22px;
+          margin:5px 0 25px 0;
+          text-align:center;
+        ">
+          ${contenido}
+        </h3>
+      `;
+
+      return;
+    }
+
+    // Mostrar encabezado únicamente cuando cambia la sección
+    if (seccion !== seccionAnterior) {
+
+      html += `
+        <h3 style="
+          color:#145a32;
+          margin-top:28px;
+          margin-bottom:10px;
+          border-bottom:1px solid #dfeee5;
+          padding-bottom:6px;
+        ">
+          ${seccion}
+        </h3>
+      `;
+
+      seccionAnterior = seccion;
+    }
+
+    html += `
+      <p style="
+        line-height:1.6;
+        margin:8px 0 12px 0;
+        text-align:left;
+      ">
+        ${contenido}
+      </p>
+    `;
+  });
+
+  contenedor.innerHTML = html;
+}
+ 
 async function inicializar() {
  try {
  let rawFechas = await fetchSheetJSON("Calendario");
@@ -1146,6 +1248,16 @@ async function inicializar() {
  }));
  mostrarNoticias(nData);
 
+  // Cargar Bases del Torneo
+let rawBases = await fetchSheetJSON("Bases");
+
+let bData = rawBases.map(b => ({
+  Sección: b.sección || b.Sección || b.seccion || b.Seccion || "",
+  Contenido: b.contenido || b.Contenido || ""
+}));
+
+mostrarBases(bData);
+  
  let rawLlaves = await fetchSheetJSON("Llaves");
  let llavesData = rawLlaves.map(l => ({
  Fase: l.fase || l.Fase || "",
