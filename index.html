@@ -1318,10 +1318,22 @@ window.onload = function() {
  }
 
  if ('serviceWorker' in navigator) {
- navigator.serviceWorker.register('./sw.js')
- .then(reg => console.log('Service Worker registrado exitosamente.'))
- .catch(err => console.log('Error al registrar Service Worker.', err));
- }
+  window.addEventListener('load', async () => {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js', {
+        updateViaCache: 'none'
+      });
+
+      console.log('Service Worker registrado exitosamente.');
+
+      // Fuerza a revisar si existe una versión nueva del sw.js
+      await reg.update();
+
+    } catch (err) {
+      console.log('Error al registrar Service Worker.', err);
+    }
+  });
+}
 };
 </script>
 </body>
