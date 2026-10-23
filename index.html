@@ -262,6 +262,13 @@
 <section id="jugadores" class="tab" style="display:none">
  <div class="card">
  <h2>Listado de Jugadores</h2>
+ <div style="display:flex; justify-content:flex-end; align-items:center; gap:10px; margin:12px 0 18px; flex-wrap:wrap;">
+  <label for="ordenJugadores" style="font-weight:600; color:#145a32;">Ordenar por:</label>
+  <select id="ordenJugadores" onchange="renderizarJugadores()" style="padding:9px 12px; border:1px solid #cbd5d0; border-radius:6px; font-size:15px;">
+   <option value="grupo" selected>Grupo</option>
+   <option value="nombre">Nombre</option>
+  </select>
+ </div>
  <div id="playersContainer">Cargando participantes...</div>
  </div>
 </section>
@@ -361,6 +368,7 @@ let fechaFinPlayoffs = new Date("2099-12-31T23:59:59");
 
 let allMatches = []; 
 let globalLeaderboard = {}; 
+let datosJugadores = [];
 let origenFiltro = 'leaderboard';
 let jugadorFiltradoActual = null; 
 
@@ -1183,6 +1191,33 @@ function mostrarNoticias(datos) {
   contenedor.innerHTML = html;
 }
  
+function renderizarJugadores() {
+ const contenedor = document.getElementById("playersContainer");
+ if (!contenedor) return;
+
+ const modo = document.getElementById("ordenJugadores")?.value || "grupo";
+ const pData = [...datosJugadores].filter(p => p.Nombre);
+ const compararNombre = (a,b) => (a.Nombre || "").localeCompare(b.Nombre || "", "es", {sensitivity:"base"});
+ const compararGrupo = (a,b) => {
+  const grupoA = String(a.Grupo || "").trim();
+  const grupoB = String(b.Grupo || "").trim();
+  if (!grupoA && grupoB) return 1;
+  if (grupoA && !grupoB) return -1;
+  return grupoA.localeCompare(grupoB, "es", {numeric:true, sensitivity:"base"});
+ };
+
+ pData.sort((a,b) => modo === "nombre"
+  ? (compararNombre(a,b) || compararGrupo(a,b))
+  : (compararGrupo(a,b) || compararNombre(a,b))
+ );
+
+ let html = "<div class='table-wrapper'><table><tr><th>Jugador</th><th>Grupo</th><th>GHIN</th><th>Teléfono</th></tr>";
+ pData.forEach(p => {
+  html += `<tr><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')" style="text-align:left;">${p.Nombre}</td><td>${p.Grupo || ''}</td><td>${p.GHIN || ''}</td><td>${p.Telefono || ''}</td></tr>`;
+ });
+ contenedor.innerHTML = html + "</table></div>";
+}
+
 async function inicializar() {
  try {
  let rawFechas = await fetchSheetJSON("Calendario");
@@ -1297,28 +1332,13 @@ async function inicializar() {
  });
  document.getElementById("groupsContainer").innerHTML = lbHtml;
 
- let pData = rawPlayers.map(p => ({
+ datosJugadores = rawPlayers.map(p => ({
  Nombre: p.nombre || p.Nombre || "",
  Grupo: p.grupo || p.Grupo || "",
- GHIN: p.ghin || p.GHIN || ""
+ GHIN: p.ghin || p.GHIN || "",
+ Telefono: p.telefono || p.Telefono || p.teléfono || p.Teléfono || p["Teléfono"] || p["Número de teléfono"] || p.númerodeteléfono || p.celular || p.Celular || ""
  }));
- 
- // ORDEN POR GRUPO Y, DENTRO DE CADA GRUPO, POR NOMBRE
- let pHtml = "<div class='table-wrapper'><table><tr><th>Jugador</th><th>Grupo</th><th>GHIN</th></tr>";
- pData.sort((a,b) => {
-  const grupoA = String(a.Grupo || "").trim();
-  const grupoB = String(b.Grupo || "").trim();
-  if (!grupoA && grupoB) return 1;
-  if (grupoA && !grupoB) return -1;
-  const diferenciaGrupo = grupoA.localeCompare(grupoB, "es", {numeric:true, sensitivity:"base"});
-  if (diferenciaGrupo !== 0) return diferenciaGrupo;
-  return (a.Nombre || "").localeCompare(b.Nombre || "", "es", {sensitivity:"base"});
- }).forEach(p => {
- if(p.Nombre) {
- pHtml += `<tr><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')" style="text-align:left;">${p.Nombre}</td><td>${p.Grupo || ''}</td><td>${p.GHIN || ''}</td></tr>`;
- }
- });
- document.getElementById("playersContainer").innerHTML = pHtml + "</table></div>";
+ renderizarJugadores();
 
  let rawNews = await fetchSheetJSON("Noticias");
  let nData = rawNews.map(n => ({
