@@ -911,6 +911,31 @@ function mostrarMisJuegos(programacion) {
  intro.innerText = `Programación de ${jugadorActual}. Puedes adelantar un partido de común acuerdo con tu rival.`;
 
  const actualNorm = normalizarNombre(jugadorActual);
+ const ordenMes = {
+  noviembre: 0,
+  diciembre: 1,
+  enero: 2,
+  febrero: 3,
+  marzo: 4,
+  abril: 5,
+  mayo: 6,
+  junio: 7,
+  julio: 8,
+  agosto: 9,
+  septiembre: 10,
+  octubre: 11
+ };
+ const obtenerOrdenMes = valor => {
+  const texto = String(valor || "")
+   .trim()
+   .toLocaleLowerCase("es")
+   .normalize("NFD")
+   .replace(/[\u0300-\u036f]/g, "");
+  const coincidencia = texto.match(/enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre/);
+  if (!coincidencia) return 99;
+  const mes = coincidencia[0] === "setiembre" ? "septiembre" : coincidencia[0];
+  return ordenMes[mes] ?? 99;
+ };
  const propios = (programacion || [])
  .map(p => ({
  Mes: p.mes || p.Mes || "",
@@ -924,7 +949,11 @@ function mostrarMisJuegos(programacion) {
  const resultado = buscarResultadoEntre(jugadorActual, rival);
  return {...p, Rival:rival, ResultadoEncontrado:resultado};
  })
- .sort((a,b) => a.Orden - b.Orden);
+ .sort((a,b) => {
+  const diferenciaMes = obtenerOrdenMes(a.Mes) - obtenerOrdenMes(b.Mes);
+  if (diferenciaMes !== 0) return diferenciaMes;
+  return a.Orden - b.Orden;
+ });
 
  const pendientes = propios.filter(p => !p.ResultadoEncontrado);
  const jugados = propios.filter(p => p.ResultadoEncontrado);
@@ -1252,9 +1281,17 @@ async function inicializar() {
  GHIN: p.ghin || p.GHIN || ""
  }));
  
- // ORDEN ALFABÉTICO DIRECTO POR JUGADOR
+ // ORDEN POR GRUPO Y, DENTRO DE CADA GRUPO, POR NOMBRE
  let pHtml = "<div class='table-wrapper'><table><tr><th>Jugador</th><th>Grupo</th><th>GHIN</th></tr>";
- pData.sort((a,b) => (a.Nombre||'').localeCompare(b.Nombre||'')).forEach(p => {
+ pData.sort((a,b) => {
+  const grupoA = String(a.Grupo || "").trim();
+  const grupoB = String(b.Grupo || "").trim();
+  if (!grupoA && grupoB) return 1;
+  if (grupoA && !grupoB) return -1;
+  const diferenciaGrupo = grupoA.localeCompare(grupoB, "es", {numeric:true, sensitivity:"base"});
+  if (diferenciaGrupo !== 0) return diferenciaGrupo;
+  return (a.Nombre || "").localeCompare(b.Nombre || "", "es", {sensitivity:"base"});
+ }).forEach(p => {
  if(p.Nombre) {
  pHtml += `<tr><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')" style="text-align:left;">${p.Nombre}</td><td>${p.Grupo || ''}</td><td>${p.GHIN || ''}</td></tr>`;
  }
