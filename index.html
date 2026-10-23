@@ -101,6 +101,7 @@
  .game-card.played { border-left-color:#7f8c8d; opacity:0.92; }
  .game-month { font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#777; font-weight:bold; margin-bottom:7px; }
  .game-rival { font-size:18px; color:#145a32; font-weight:bold; margin-bottom:6px; }
+ .game-rival a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
  .game-status { font-size:13px; color:#666; }
  .game-status strong { color:#333; }
  .empty-games { padding:18px; border-radius:8px; background:#f7f7f7; text-align:center; opacity:0.8; }
@@ -904,6 +905,17 @@ function buscarResultadoEntre(jugador1, jugador2) {
  });
 }
 
+function enlaceWhatsAppJugador(nombre) {
+ const jugador = datosJugadores.find(p => normalizarNombre(p.Nombre) === normalizarNombre(nombre));
+ const telefono = String(jugador?.Telefono || "").trim();
+ const digitos = telefono.replace(/\D/g, "");
+ if (!digitos) return nombre;
+
+ // Los teléfonos capturados en el registro tienen 10 dígitos y corresponden a México.
+ const numeroWhatsApp = digitos.length === 10 ? `52${digitos}` : digitos;
+ return `<a href="https://wa.me/${numeroWhatsApp}" target="_blank" rel="noopener noreferrer" title="Abrir chat de WhatsApp con ${nombre}">${nombre}</a>`;
+}
+
 function mostrarMisJuegos(programacion) {
  const contenedor = document.getElementById("misJuegosContainer");
  const intro = document.getElementById("misJuegosIntro");
@@ -982,7 +994,7 @@ function mostrarMisJuegos(programacion) {
  html += `
  <div class="game-card">
  <div class="game-month">${p.Mes || "Mes por definir"}</div>
- <div class="game-rival">${p.Rival}</div>
+ <div class="game-rival">${enlaceWhatsAppJugador(p.Rival)}</div>
  <div class="game-status"><strong>Pendiente</strong></div>
  </div>`;
  });
@@ -1003,7 +1015,7 @@ function mostrarMisJuegos(programacion) {
  html += `
  <div class="game-card played">
  <div class="game-month">${p.Mes || "Mes por definir"}</div>
- <div class="game-rival">${p.Rival}</div>
+ <div class="game-rival">${enlaceWhatsAppJugador(p.Rival)}</div>
  <div class="game-status"><strong>${estado}</strong>${diff}${r.Fecha ? ` · ${r.Fecha}` : ""}</div>
  </div>`;
  });
@@ -1258,7 +1270,6 @@ async function inicializar() {
 
 
  let rawProgramacion = await fetchSheetJSON("Programacion");
- mostrarMisJuegos(rawProgramacion);
 
  let faseGruposMatches = [];
  let playoffMatches = [];
@@ -1339,6 +1350,7 @@ async function inicializar() {
  Telefono: p.telefono || p.Telefono || p.teléfono || p.Teléfono || p["Teléfono"] || p["Número de teléfono"] || p.númerodeteléfono || p.celular || p.Celular || ""
  }));
  renderizarJugadores();
+ mostrarMisJuegos(rawProgramacion);
 
  let rawNews = await fetchSheetJSON("Noticias");
  let nData = rawNews.map(n => ({
