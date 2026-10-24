@@ -1111,7 +1111,7 @@ function mostrarNoticias(datos) {
  <span class="news-tag" style="background: ${color}">${n.Etiqueta || 'Crónica'}</span>
  <span class="news-date">${n.Fecha || ''}</span>
  <div class="news-title">${n.Titular || ''}</div>
- <div class="news-content">${n.Relato}</div>
+<div class="news-content">${n.RelatoHTML || n.Relato}</div>
  </div>`;
  });
  contenedor.innerHTML = html;
@@ -1377,12 +1377,15 @@ if (jugadorOficial) {
  mostrarMisJuegos(rawProgramacion);
 
  let rawNews = await fetchSheetJSON("Noticias");
- let nData = rawNews.map(n => ({
- Fecha: n.fecha || n.Fecha || "",
- Etiqueta: n.etiqueta || n.Etiqueta || "",
- Titular: n.titular || n.Titular || "",
- Relato: n.relato || n.Relato || ""
- }));
+ 
+let nData = rawNews.map(n => ({
+  Fecha: n.fecha || n.Fecha || "",
+  Etiqueta: n.etiqueta || n.Etiqueta || "",
+  Titular: n.titular || n.Titular || "",
+  Relato: n.relato || n.Relato || "",
+  RelatoHTML: n.relatohtml || n.RelatoHTML || ""
+}));
+
  mostrarNoticias(nData);
 
   // Cargar Bases del Torneo
