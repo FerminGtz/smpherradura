@@ -1292,6 +1292,30 @@ async function inicializar() {
  });
 
  let rawPlayers = await fetchSheetJSON("Participantes");
+  
+const correoSesion = String(
+  localStorage.getItem("smp_email") || ""
+).trim().toLowerCase();
+
+const ghinSesion = String(
+  localStorage.getItem("smp_ghin") || ""
+).trim();
+
+const jugadorOficial = rawPlayers.find(p =>
+  String(p.correo || p.Correo || "").trim().toLowerCase() === correoSesion &&
+  String(p.ghin || p.GHIN || "").trim() === ghinSesion
+);
+
+if (jugadorOficial) {
+  const nombreOficial = String(
+    jugadorOficial.nombre || jugadorOficial.Nombre || ""
+  ).trim();
+
+  if (nombreOficial) {
+    localStorage.setItem("smp_nombre", nombreOficial);
+  }
+}
+
  let players = {};
 
  // Crear la tabla desde los participantes para que los grupos aparezcan
