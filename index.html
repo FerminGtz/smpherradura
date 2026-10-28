@@ -145,6 +145,35 @@
  .payment-block { border-top-color:#444; }
  .access-link a { color:#81c784; }
  }
+
+ /* LUNA V6.0: chat nativo como pestaña; conserva la navegación del portal. */
+ .luna-chat-panel {display:flex; flex-direction:column; height:clamp(390px, 66dvh, 660px); min-height:0; border:1px solid #dfe8e2; border-radius:12px; background:#fff; overflow:hidden;}
+ .luna-mensajes {flex:1; min-height:0; overflow-y:auto; padding:18px 16px; display:flex; flex-direction:column; gap:14px; overscroll-behavior:contain;}
+ .luna-burbuja {max-width:90%; padding:13px 16px; border-radius:16px; font-size:16px; line-height:1.55; overflow-wrap:anywhere; white-space:pre-wrap;}
+ .luna-burbuja.asistente {align-self:flex-start; background:#edf3ee; color:#173c32;}
+ .luna-burbuja.usuario {align-self:flex-end; background:#dcebe3; color:#19372d;}
+ .luna-enviar-form {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:9px;padding:12px;border-top:1px solid #dce7df;background:#fff;}
+ #lunaPregunta {width:100%;font:inherit;font-size:16px;min-height:49px;border-radius:13px;border:1px solid #b9c9bd;padding:12px;}
+ #lunaEnviar {min-height:49px;border:0;border-radius:11px;background:#145a32;color:#fff;font-weight:bold;padding:0 19px;cursor:pointer;}
+ #lunaEnviar:disabled {opacity:.52;cursor:wait;}
+ #lunaEstado {font-size:13px;color:#476459;min-height:17px;padding:0 15px 10px;background:#fff;}
+ @media (max-width:700px) {
+   #luna.tab {padding:12px 8px;}
+   #luna .card {padding:16px 10px;}
+   .luna-chat-panel {height:clamp(340px, 59dvh, 620px);}
+   .luna-mensajes {padding:12px 9px;}
+   .luna-burbuja {font-size:16px;max-width:95%;padding:12px 13px;}
+   .luna-enviar-form {gap:6px;padding:9px;}
+   #lunaEnviar {padding:0 12px;}
+ }
+ @media (prefers-color-scheme:dark) {
+   .luna-chat-panel,.luna-enviar-form,#lunaEstado {background:#1e1e1e;border-color:#3e5547;}
+   .luna-burbuja.asistente {background:#263b30;color:#f1f7f1;}
+   .luna-burbuja.usuario {background:#325240;color:#fff;}
+   #lunaPregunta {background:#282e2a;color:#fff;border-color:#526456;}
+   #lunaEstado {color:#b9d0c0;}
+ }
+
 </style>
 </head>
 <body>
@@ -232,7 +261,7 @@
  <a onclick="showTab('playoffs')" id="nav-playoffs" style="display:none;">Playoffs </a>
  <a onclick="showTab('jugadores')" id="nav-jugadores">Jugadores</a>
  <a onclick="showTab('misjuegos')" id="nav-misjuegos">Mis Juegos</a>
- <a href="https://script.google.com/macros/s/AKfycbwV1xnLkAJ5idr_dQ1RjHZGZC6Xtpyf5K5NT-E3_L_KUm_5Q1mCpZlHHzNd8CUlxFnj/exec?modo=jugadores" id="nav-luna" target="_blank" rel="noopener noreferrer" aria-label="Consultar LUNA, abrir en nueva pestaña">Consultar LUNA</a>
+ <a onclick="showTab('luna')" id="nav-luna">LUNA</a>
  <a onclick="showTab('resultados')" id="nav-resultados">Resultados</a>
  <a onclick="showTab('noticias')" id="nav-noticias">Noticias </a>
  <a onclick="showTab('contacto')" id="nav-contacto">Contacto</a>
@@ -280,6 +309,23 @@
  <h2>Mis Juegos</h2>
  <p id="misJuegosIntro" style="font-size:15px; margin-bottom:10px; opacity:0.8;">Cargando tu programación...</p>
  <div id="misJuegosContainer">Cargando juegos...</div>
+ </div>
+</section>
+
+
+<section id="luna" class="tab" style="display:none">
+ <div class="card">
+  <h2>LUNA · Asistente del Torneo</h2>
+  <div class="luna-chat-panel" aria-label="Conversación con LUNA">
+   <div id="lunaMensajes" class="luna-mensajes" role="log" aria-live="polite">
+    <div class="luna-burbuja asistente">Bienvenido a LUNA. ¿Qué te gustaría saber sobre el torneo o las Reglas de Golf?</div>
+   </div>
+   <form class="luna-enviar-form" id="lunaFormulario" onsubmit="enviarConsultaLunaV6(event)">
+    <input type="text" id="lunaPregunta" maxlength="500" placeholder="Pregunta sobre el torneo o las Reglas de Golf..." enterkeyhint="send" autocomplete="off" aria-label="Pregunta sobre el torneo o las Reglas de Golf">
+    <button type="submit" id="lunaEnviar">Enviar</button>
+   </form>
+   <div id="lunaEstado" role="status" aria-live="polite">Hasta 50 consultas por jugador al día.</div>
+  </div>
  </div>
 </section>
 
@@ -686,10 +732,136 @@ async function validarAcceso() {
   }
 }
  
+
+// LUNA V6.0 — Chat integrado. No crea ni renueva sesiones de Apps Script.
+// Implementación independiente V6 validada. Mantener el endpoint hasta una migración deliberada.
+// ANTES DE PUBLICAR EL index.html en el sitio oficial.
+const LUNA_V6_ENDPOINT = "https://script.google.com/macros/s/AKfycbwadDpVHjy5B8SJbEfkX4ArS-v30ApKd07xSaIpcS_EVQrcQIJM49WzP5jz5VB14RBQ/exec";
+let lunaV6Activa = false;
+let lunaV6Cargada = false;
+let lunaV6Secuencia = 0;
+
+function iniciarLunaV6() {
+  if (lunaV6Cargada) return;
+  lunaV6Cargada = true;
+  const email = String(localStorage.getItem('smp_email') || '').trim().toLowerCase();
+  if (!email || localStorage.getItem('smp_acceso') !== 'permitido') {
+    document.getElementById('lunaEstado').textContent = 'Ingresa al portal con tu correo y GHIN para consultar LUNA.';
+    document.getElementById('lunaEnviar').disabled = true;
+    return;
+  }
+  document.getElementById('lunaEnviar').disabled = false;
+}
+
+function escribirLunaV6(tipo, texto) {
+  const caja = document.getElementById('lunaMensajes');
+  const burbuja = document.createElement('div');
+  burbuja.className = 'luna-burbuja ' + (tipo === 'usuario' ? 'usuario' : 'asistente');
+  // No inyectar HTML del modelo; mostrar texto seguro con negritas sencillas.
+  String(texto).split(/(\*\*[^*\n]+\*\*)/g).forEach(fragmento => {
+    if (/^\*\*[^*\n]+\*\*$/.test(fragmento)) {
+      const negrita = document.createElement('strong');
+      negrita.textContent = fragmento.slice(2,-2);
+      burbuja.appendChild(negrita);
+    } else burbuja.appendChild(document.createTextNode(fragmento));
+  });
+  caja.appendChild(burbuja);
+  caja.scrollTop = caja.scrollHeight;
+}
+
+async function enviarConsultaLunaV6(evento) {
+  if (evento) evento.preventDefault();
+  if (lunaV6Activa) return;
+  const campo = document.getElementById('lunaPregunta');
+  const texto = campo.value.trim();
+  if (!texto || texto.length > 500) return;
+  const email = String(localStorage.getItem('smp_email') || '').trim().toLowerCase();
+  if (!email || localStorage.getItem('smp_acceso') !== 'permitido') {
+    document.getElementById('lunaEstado').textContent = 'Ingresa primero al portal con correo y GHIN.';
+    return;
+  }
+  if (LUNA_V6_ENDPOINT.includes('__LUNA_V6_')) {
+    document.getElementById('lunaEstado').textContent = 'LUNA V6 aún no tiene configurado el enlace de pruebas.';
+    return;
+  }
+
+  campo.blur();
+  campo.value = '';
+  escribirLunaV6('usuario', texto);
+  lunaV6Activa = true;
+  const boton = document.getElementById('lunaEnviar');
+  const estado = document.getElementById('lunaEstado');
+  boton.disabled = true;
+  estado.textContent = 'Consultando LUNA...';
+  const nombreCallback = 'lunaV6Cb_' + (++lunaV6Secuencia).toString(36) + Math.random().toString(36).slice(2,12);
+  const script = document.createElement('script');
+  let resuelta = false;
+  let temporizador;
+
+  function finalizar() {
+    if (resuelta) return false;
+    resuelta = true;
+    clearTimeout(temporizador);
+    delete window[nombreCallback];
+    script.remove();
+    lunaV6Activa = false;
+    boton.disabled = false;
+    return true;
+  }
+
+  window[nombreCallback] = function(resultado) {
+    if (!finalizar()) return;
+    if (resultado && resultado.ok && typeof resultado.respuesta === 'string') {
+      escribirLunaV6('asistente', resultado.respuesta);
+      estado.textContent = 'Puedes hacer otra pregunta.';
+    } else {
+      const error = resultado && resultado.mensaje || 'No fue posible completar la consulta.';
+      escribirLunaV6('asistente', error);
+      estado.textContent = 'No se completó la consulta.';
+    }
+  };
+  script.onerror = function() {
+    if (!finalizar()) return;
+    escribirLunaV6('asistente', 'No se pudo conectar con LUNA. Intenta nuevamente.');
+    estado.textContent = 'Error de conexión.';
+  };
+  script.onload = function() {
+    if (!resuelta) {
+      finalizar();
+      escribirLunaV6('asistente', 'El servicio no devolvió una respuesta válida.');
+      estado.textContent = 'No se recibió respuesta.';
+    }
+  };
+  temporizador = setTimeout(function() {
+    if (!finalizar()) return;
+    escribirLunaV6('asistente', 'La consulta tardó demasiado. Puedes intentarlo de nuevo.');
+    estado.textContent = 'Tiempo de espera agotado.';
+  }, 90000);
+
+  try {
+    // Evitar enviar el correo en la URL. En su lugar se usa una huella SHA-256.
+    const bytes = new TextEncoder().encode(email);
+    const digest = await crypto.subtle.digest('SHA-256', bytes);
+    const id = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,'0')).join('');
+    const url = new URL(LUNA_V6_ENDPOINT);
+    url.searchParams.set('accion', 'lunaV6');
+    url.searchParams.set('id', id);
+    url.searchParams.set('pregunta', texto);
+    url.searchParams.set('prefix', nombreCallback);
+    url.searchParams.set('t', String(Date.now()));
+    script.src = url.href;
+    document.head.appendChild(script);
+  } catch (error) {
+    finalizar();
+    escribirLunaV6('asistente', 'No fue posible iniciar la consulta. Verifica la conexión y la dirección de LUNA.');
+  }
+}
+
 function showTab(tabId){
  document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
  document.querySelectorAll('#mainNav a').forEach(a => a.classList.remove('active-tab'));
  document.getElementById(tabId).style.display = 'block';
+ if (tabId === 'luna') iniciarLunaV6();
  document.getElementById('nav-' + tabId).classList.add('active-tab');
  window.scrollTo(0,0);
 }
@@ -1224,9 +1396,9 @@ function renderizarJugadores() {
   : (compararGrupo(a,b) || compararNombre(a,b))
  );
 
- let html = "<div class='table-wrapper'><table><tr><th>Jugador</th><th>Grupo</th><th>GHIN</th><th>Teléfono</th></tr>";
+ let html = "<div class='table-wrapper'><table><tr><th>Jugador</th><th>Grupo</th><th>GHIN</th></tr>";
  pData.forEach(p => {
-  html += `<tr><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')" style="text-align:left;">${p.Nombre}</td><td>${p.Grupo || ''}</td><td>${p.GHIN || ''}</td><td>${p.Telefono || ''}</td></tr>`;
+  html += `<tr><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')" style="text-align:left;">${p.Nombre}</td><td>${p.Grupo || ''}</td><td>${p.GHIN || ''}</td></tr>`;
  });
  contenedor.innerHTML = html + "</table></div>";
 }
