@@ -17,10 +17,28 @@
 <style>
  /* ----- ESTILOS BASE ----- */
  body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin:0;background:#f4f6f7;color:#333; transition: background 0.3s, color 0.3s;}
- header{background:#0b3d2e;color:white;padding:25px;text-align:center;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
- header img{width:140px;margin-bottom:10px;}
- header h1{margin:10px 0 5px 0;font-size:26px;}
- header p{margin:0;font-style:italic;opacity:0.9;}
+ /* Encabezado SMP compacto: logo y nombre en una sola fila */
+ header.smp-header{background:#0b3d2e;color:white;padding:24px 18px;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+ .smp-header-inner{display:flex;align-items:center;justify-content:center;gap:28px;max-width:850px;margin:0 auto;}
+ .smp-header-logo{display:block;width:150px;height:150px;object-fit:contain;flex:none;}
+ .smp-header-text{min-width:0;text-align:left;}
+ .smp-header h1{margin:0;font-size:clamp(29px,3.5vw,46px);font-weight:700;line-height:1.08;}
+ .smp-header-season{margin:9px 0 2px;font-size:24px;letter-spacing:.02em;color:#e2e9e5;}
+ .smp-header-tagline{margin:4px 0 0;font-size:21px;font-style:italic;color:#cbdad2;}
+ @media (max-width:700px){
+   header.smp-header{padding:10px 12px;}
+   .smp-header-inner{justify-content:center;gap:12px;max-width:420px;}
+   .smp-header-logo{width:64px;height:64px;}
+   .smp-header h1{font-size:clamp(17px,5vw,22px);line-height:1.12;}
+   .smp-header-season{font-size:13px;margin:3px 0 0;}
+   .smp-header-tagline{font-size:11px;margin:2px 0 0;line-height:1.15;}
+ }
+ @media (max-width:360px){
+   .smp-header-logo{width:56px;height:56px;}
+   .smp-header-inner{gap:9px;}
+   .smp-header h1{font-size:17px;}
+   .smp-header-tagline{font-size:10px;}
+ }
  
  nav{background:#145a32;padding:5px;text-align:center;position:sticky;top:0;z-index:1000;display:flex;justify-content:center;overflow-x:auto;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
  nav a{color:white;padding:12px 20px;text-decoration:none;font-weight:bold;cursor:pointer;transition:0.3s;white-space:nowrap;border-bottom:3px solid transparent;}
@@ -251,10 +269,15 @@
  </div>
 </div>
 
-<header>
- <img src="Senior_Match_Play_Logo_600px_Transparente.png" alt="Logo Senior Match Play" onerror="this.style.display='none'">
- <h1>Senior Match Play La Herradura</h1>
- <p>Convivencia, Competencia e Integración</p>
+<header class="smp-header">
+ <div class="smp-header-inner">
+  <img class="smp-header-logo" src="Senior_Match_Play_Logo_600px_Transparente.png" alt="Logotipo Senior Match Play La Herradura" onerror="this.style.display='none'">
+  <div class="smp-header-text">
+   <h1>Senior Match Play<br>La Herradura</h1>
+   <p class="smp-header-season">2026–2027</p>
+   <p class="smp-header-tagline">Convivencia, Competencia e Integración</p>
+  </div>
+ </div>
 </header>
 
 <nav id="mainNav">
