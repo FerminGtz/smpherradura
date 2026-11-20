@@ -307,7 +307,7 @@
  <button id="btnAgregarResPlayoffs" class="resultBtn" onclick="toggleRadarPlayoffs()"> Capturar Resultado</button>
  
  <div id="radarContainerPlayoffs" style="display:none; margin-bottom: 30px; text-align: center;">
- <iframe class="iframe-radar" src="https://script.google.com/macros/s/AKfycbypc4LngiNNtRC9NWkD9W2azmVc5inx2uhsrBNfvX8Pjdac8zhGK06Fce-tiz6c52HDKw/exec"></iframe>
+ <iframe class="iframe-radar" data-src="https://script.google.com/macros/s/AKfycbypc4LngiNNtRC9NWkD9W2azmVc5inx2uhsrBNfvX8Pjdac8zhGK06Fce-tiz6c52HDKw/exec"></iframe>
  </div>
 
  <div id="bracketContainer">Conectando con las llaves del torneo...</div>
@@ -363,7 +363,7 @@
  <button id="btnAgregarRes" class="resultBtn" onclick="toggleRadar()"> Capturar Resultado</button>
  
  <div id="radarContainer" style="display:none; margin-bottom: 30px; text-align: center;">
- <iframe class="iframe-radar" src="https://script.google.com/macros/s/AKfycbypc4LngiNNtRC9NWkD9W2azmVc5inx2uhsrBNfvX8Pjdac8zhGK06Fce-tiz6c52HDKw/exec"></iframe>
+ <iframe class="iframe-radar" data-src="https://script.google.com/macros/s/AKfycbypc4LngiNNtRC9NWkD9W2azmVc5inx2uhsrBNfvX8Pjdac8zhGK06Fce-tiz6c52HDKw/exec"></iframe>
  </div>
  <div class="table-wrapper">
  <div id="resultsContainer">Cargando resultados...</div>
@@ -897,16 +897,44 @@ function showTab(tabId){
  document.getElementById('nav-' + tabId).classList.add('active-tab');
  window.scrollTo(0,0);
 }
+async function prepararCapturaSMP(contenedor) {
+    const email = String(
+        localStorage.getItem("smp_email") || ""
+    ).trim().toLowerCase();
 
+    if (!email || localStorage.getItem("smp_acceso") !== "permitido") {
+        alert("Debes iniciar sesión en el portal.");
+        return false;
+    }
+
+    try {
+        const bytes = new TextEncoder().encode(email);
+        const digest = await crypto.subtle.digest("SHA-256", bytes);
+        const id = Array.from(new Uint8Array(digest),
+            b => b.toString(16).padStart(2, "0")).join("");
+
+        const iframe = contenedor.querySelector("iframe");
+        const url = new URL(iframe.dataset.src);
+
+        url.searchParams.set("capturista", id);
+        iframe.src = url.href;
+
+        return true;
+    } catch (error) {
+        alert("No fue posible identificar al usuario.");
+        return false;
+    }
+}
 let monitorCapturaActivo = false;
 let cantidadResultadosAlAbrir = 0;
 let timerMonitorCaptura = null;
 
-function toggleRadar() {
+async function toggleRadar() {
  const container = document.getElementById('radarContainer');
  const btn = document.getElementById('btnAgregarRes');
 
  if (container.style.display === 'none') {
+ if (!(await prepararCapturaSMP(container))) return;
  container.style.display = 'block';
  btn.innerHTML = ' Cancelar Captura';
  btn.style.background = '#c0392b';
@@ -983,11 +1011,12 @@ function cerrarCapturaYSincronizar() {
  }, 1500);
 }
 
-function toggleRadarPlayoffs() {
+async function toggleRadarPlayoffs() {
  const container = document.getElementById('radarContainerPlayoffs');
  const btn = document.getElementById('btnAgregarResPlayoffs');
  
  if (container.style.display === 'none') {
+  if (!(await prepararCapturaSMP(container))) return;
  container.style.display = 'block';
  btn.innerHTML = ' Cerrar Captura';
  btn.style.background = '#c0392b';
