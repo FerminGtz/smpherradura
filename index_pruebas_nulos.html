@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self'; connect-src 'none'; frame-src 'none'; form-action 'none'; worker-src 'none'; base-uri 'none'">
+<title>SMP · Pruebas de Matches Nulos</title><style>
+ /* ----- ESTILOS BASE ----- */
+ body{font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;margin:0;background:#f4f6f7;color:#333; transition: background 0.3s, color 0.3s;}
+ /* Encabezado SMP compacto: logo y nombre en una sola fila */
+ header.smp-header{background:#0b3d2e;color:white;padding:24px 18px;box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+ .smp-header-inner{display:flex;align-items:center;justify-content:center;gap:28px;max-width:850px;margin:0 auto;}
+ .smp-header-logo{display:block;width:150px;height:150px;object-fit:contain;flex:none;}
+ .smp-header-text{min-width:0;text-align:left;}
+ .smp-header h1{margin:0;font-size:clamp(29px,3.5vw,46px);font-weight:700;line-height:1.08;}
+ .smp-header-season{margin:9px 0 2px;font-size:24px;letter-spacing:.02em;color:#e2e9e5;}
+ .smp-header-tagline{margin:4px 0 0;font-size:21px;font-style:italic;color:#cbdad2;}
+ @media (max-width:700px){
+   header.smp-header{padding:10px 12px;}
+   .smp-header-inner{justify-content:center;gap:12px;max-width:420px;}
+   .smp-header-logo{width:64px;height:64px;}
+   .smp-header h1{font-size:clamp(17px,5vw,22px);line-height:1.12;}
+   .smp-header-season{font-size:13px;margin:3px 0 0;}
+   .smp-header-tagline{font-size:11px;margin:2px 0 0;line-height:1.15;}
+ }
+ @media (max-width:360px){
+   .smp-header-logo{width:56px;height:56px;}
+   .smp-header-inner{gap:9px;}
+   .smp-header h1{font-size:17px;}
+   .smp-header-tagline{font-size:10px;}
+ }
+ 
+ nav{background:#145a32;padding:5px;text-align:center;position:sticky;top:0;z-index:1000;display:flex;justify-content:center;overflow-x:auto;box-shadow:0 2px 5px rgba(0,0,0,0.1);}
+ nav a{color:white;padding:12px 20px;text-decoration:none;font-weight:bold;cursor:pointer;transition:0.3s;white-space:nowrap;border-bottom:3px solid transparent;}
+ nav a:hover, nav a.active-tab {background:#0b3d2e;border-bottom:3px solid #f1c40f;}
+ 
+ section{padding:30px 15px;max-width:1100px;margin:auto;min-height:70vh;}
+ .card{background:white;padding:25px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.08);margin-bottom:30px; transition: background 0.3s;}
+ h2{color:#145a32;border-bottom:2px solid #e8f8f0;padding-bottom:10px;margin-top:0;}
+ 
+ .table-wrapper {overflow-x: auto;}
+ table{width:100%;border-collapse:collapse;margin-top:15px;font-size:13px;}
+ th,td{padding:8px 6px;border-bottom:1px solid #eee;text-align:center;}
+ th{background:#0b3d2e;color:white;text-transform:uppercase;font-size:11px;}
+ 
+ .groupTitle{margin-top:40px;font-size:20px;color:#145a32;font-weight:bold;border-left:6px solid #145a32;padding:10px 15px;background:#f9f9f9;border-radius:0 8px 8px 0;}
+ .firstPlace{background:#e8f8f0;font-weight:bold;}
+ .secondPlace{background:#fdf5e6;}
+ .clickable-name {color:#145a32;text-decoration:underline;cursor:pointer;font-weight:bold;transition:0.2s;text-align:left; white-space:normal; line-height:1.3; word-break:break-word;}
+ .clickable-name:hover {color:#0b3d2e;background:#e8f8f0;}
+ 
+ .resultBtn{display:inline-block;background:#145a32;color:white;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:bold;margin-bottom:20px;border:none;cursor:pointer;transition:0.3s;box-shadow:0 4px 6px rgba(0,0,0,0.15);}
+ .resultBtn:hover{background:#0b3d2e;transform:translateY(-2px);}
+
+ .whatsappBtn { display: inline-block; background: #25D366; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px; border: none; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.15); font-size: 16px; }
+ .whatsappBtn:hover { background: #128C7E; transform: translateY(-2px); }
+
+ .bracket-container { display: flex; flex-direction: column; gap: 30px; margin-top: 20px; }
+ .phase-block { background: #fdfdfd; border: 1px solid #eee; border-radius: 8px; padding: 15px; }
+ .phase-title { background: #0b3d2e; color: #f1c40f; padding: 10px 15px; border-radius: 6px; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; text-align: center; letter-spacing: 2px; }
+ .matches-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+ .match-card { background: #fff; border: 2px solid #e8f8f0; border-radius: 8px; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative; }
+ .match-player { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; font-size: 15px; border-radius: 4px; }
+ .winner { background: #e8f8f0; font-weight: bold; color: #145a32; border-left: 4px solid #27ae60; }
+ .loser { color: #888; text-decoration: line-through; }
+ .vs-divider { border-top: 1px dashed #ccc; margin: 5px 0; }
+ .match-result { font-size: 12px; color: #d35400; font-weight: bold; text-align: center; margin-top: 10px; background: #fff5e6; padding: 4px; border-radius: 4px; }
+
+ .news-card { margin-bottom: 30px; padding: 25px; background: #145a32; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border: 1px solid #0b3d2e; color: #fff; }
+ .news-tag { color: white; padding: 5px 14px; border-radius: 20px; font-size: 11px; text-transform: uppercase; font-weight: bold; display: inline-block; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+ .news-date { color: #b0bec5; font-size: 12px; float: right; font-weight: 500; }
+ .news-title { margin: 0 0 12px 0; color: #f1c40f; font-size: 20px; font-weight: bold; letter-spacing: 0.5px; }
+ .news-content { line-height: 1.7; color: #fdfdfd; font-size: 15px; white-space: pre-wrap; word-wrap: break-word; }
+
+ .pos-diff { color: #27ae60; font-weight: bold; }
+ .neg-diff { color: #c0392b; font-weight: bold; }
+ 
+ footer{background:#0b3d2e;color:white;text-align:center;padding:30px;margin-top:50px;}
+ .iframe-radar { width: 100%; max-width: 480px; height: 650px; border-radius: 12px; border: 1px solid #ddd; background: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
+
+ /* ----- PANTALLA DE LOGIN ----- */
+ #loginOverlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:#0b3d2e; z-index:99999; justify-content:center; align-items:center; flex-direction:column; padding:20px; box-sizing:border-box; }
+ .login-box { background:white; padding:35px 25px; border-radius:12px; max-width:380px; width:100%; text-align:center; box-shadow:0 15px 30px rgba(0,0,0,0.4); }
+ .login-box input { width:100%; padding:14px; margin-bottom:15px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; font-size:15px; }
+ .login-box button { background:#f1c40f; color:#0b3d2e; width:100%; padding:14px; border:none; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer; transition:0.3s; margin-top: 10px; }
+ .login-box button:hover { background:#d4ac0d; transform: translateY(-2px); }
+
+ /* ----- INSCRIPCIÓN ----- */
+ .registration-box { background:white; padding:32px 25px; border-radius:12px; max-width:430px; width:100%; text-align:center; box-shadow:0 15px 30px rgba(0,0,0,0.4); max-height:92vh; overflow-y:auto; }
+ .registration-box h2 { margin-bottom:6px; border-bottom:none; }
+ .registration-box h3 { margin:0 0 18px; color:#145a32; font-size:18px; }
+ .registration-box input { width:100%; padding:13px; margin-bottom:12px; border:1px solid #ccc; border-radius:8px; box-sizing:border-box; font-size:15px; }
+ .registration-label { display:block; text-align:left; font-size:13px; font-weight:bold; margin:2px 0 5px; color:#444; }
+ .registration-help { text-align:left; font-size:11px; color:#777; margin:-7px 0 11px; }
+ .payment-block { margin-top:18px; padding-top:16px; border-top:1px solid #eee; }
+ .mercadoPagoBtn { width:100%; padding:14px; background:#145a32; color:white; border:none; border-radius:8px; font-size:16px; font-weight:bold; margin-top:8px; opacity:1; cursor:pointer; }
+ .access-link { margin-top:18px; font-size:13px; }
+ .access-link a { color:#145a32; font-weight:bold; text-decoration:underline; cursor:pointer; }
+ .registration-thanks { display:none; padding:18px 4px 4px; }
+ .registration-thanks h3 { color:#145a32; font-size:22px; margin-bottom:12px; }
+
+
+ /* ----- MIS JUEGOS ----- */
+ .games-summary { display:flex; gap:12px; flex-wrap:wrap; margin:15px 0 25px; }
+ .games-pill { background:#e8f8f0; color:#145a32; border:1px solid #c8ead7; border-radius:999px; padding:8px 14px; font-size:13px; font-weight:bold; }
+ .games-section-title { margin:28px 0 10px; font-size:18px; color:#145a32; font-weight:bold; }
+ .game-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:14px; margin-top:12px; }
+ .game-card { border:1px solid #e5e5e5; border-left:6px solid #145a32; border-radius:10px; padding:16px; background:#fff; box-shadow:0 3px 10px rgba(0,0,0,0.05); }
+ .game-card.played { border-left-color:#7f8c8d; opacity:0.92; }
+ .game-month { font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#777; font-weight:bold; margin-bottom:7px; }
+ .game-rival { font-size:18px; color:#145a32; font-weight:bold; margin-bottom:6px; }
+ .game-rival a { color:inherit; text-decoration:underline; text-underline-offset:3px; }
+ .game-status { font-size:13px; color:#666; }
+ .game-status strong { color:#333; }
+ .empty-games { padding:18px; border-radius:8px; background:#f7f7f7; text-align:center; opacity:0.8; }
+
+ /* ----- MODO OSCURO INTELIGENTE ----- */
+ @media (prefers-color-scheme: dark) {
+ body { background: #121212; color: #e0e0e0; }
+ .card { background: #1e1e1e; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
+ h2 { border-bottom: 2px solid #333; color: #81c784; } 
+ table th { background: #0b3d2e; color: #fff; } 
+ table td { border-bottom: 1px solid #333; color: #e0e0e0; }
+ .groupTitle { background: #2c2c2c; border-left: 6px solid #81c784; color: #81c784; }
+ .firstPlace { background: #1b3a2a; } 
+ .secondPlace { background: #3a2a18; } 
+ .clickable-name { color: #81c784; }
+ .clickable-name:hover { background: #2c2c2c; color: #a5d6a7; }
+ .phase-block { background: #121212; border-color: #333; }
+ .match-card { background: #1e1e1e; border-color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+ .winner { background: #1b3a2a; color: #81c784; border-left: 4px solid #27ae60; }
+ .loser { color: #666; }
+ .vs-divider { border-top: 1px dashed #444; }
+ .match-result { background: #3a2a18; color: #ffb74d; }
+ .iframe-radar { border-color: #444; opacity: 0.95; }
+ .games-pill { background:#1b3a2a; color:#a5d6a7; border-color:#315c45; }
+ .games-section-title { color:#81c784; }
+ .game-card { background:#1e1e1e; border-color:#333; border-left-color:#81c784; }
+ .game-card.played { border-left-color:#777; }
+ .game-rival { color:#a5d6a7; }
+ .game-month, .game-status { color:#bbb; }
+ .game-status strong { color:#eee; }
+ .empty-games { background:#2c2c2c; }
+ 
+ .login-box { background:#1e1e1e; color:#e0e0e0; }
+ .login-box h2 { color:#81c784; border-bottom: none; }
+ .login-box input { background:#333; border:1px solid #555; color:white; }
+ .registration-box { background:#1e1e1e; color:#e0e0e0; }
+ .registration-box h2, .registration-box h3, .registration-thanks h3 { color:#81c784; }
+ .registration-box input { background:#333; border:1px solid #555; color:white; }
+ .registration-label { color:#ddd; }
+ .registration-help { color:#aaa; }
+ .payment-block { border-top-color:#444; }
+ .access-link a { color:#81c784; }
+ }
+
+ /* LUNA V6.0: chat nativo como pestaña; conserva la navegación del portal. */
+ .luna-chat-panel {display:flex; flex-direction:column; height:clamp(390px, 66dvh, 660px); min-height:0; border:1px solid #dfe8e2; border-radius:12px; background:#fff; overflow:hidden;}
+ .luna-mensajes {flex:1; min-height:0; overflow-y:auto; padding:18px 16px; display:flex; flex-direction:column; gap:14px; overscroll-behavior:contain;}
+ .luna-burbuja {max-width:90%; padding:13px 16px; border-radius:16px; font-size:16px; line-height:1.55; overflow-wrap:anywhere; white-space:pre-wrap;}
+ .luna-burbuja.asistente {align-self:flex-start; background:#edf3ee; color:#173c32;}
+ .luna-burbuja.usuario {align-self:flex-end; background:#dcebe3; color:#19372d;}
+ .luna-enviar-form {display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:9px;padding:12px;border-top:1px solid #dce7df;background:#fff;}
+ #lunaPregunta {width:100%;min-width:0;box-sizing:border-box;font:inherit;font-size:16px;min-height:49px;max-height:180px;overflow-y:auto;resize:none;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:13px;border:1px solid #b9c9bd;padding:12px;}
+ #lunaEnviar {min-height:49px;border:0;border-radius:11px;background:#145a32;color:#fff;font-weight:bold;padding:0 19px;cursor:pointer;}
+ #lunaEnviar:disabled {opacity:.52;cursor:wait;}
+ #lunaEstado {font-size:13px;color:#476459;min-height:17px;padding:0 15px 10px;background:#fff;}
+ @media (max-width:700px) {
+   #luna.tab {padding:12px 8px;}
+   #luna .card {padding:16px 10px;}
+   .luna-chat-panel {height:clamp(340px, 59dvh, 620px);}
+   .luna-mensajes {padding:12px 9px;}
+   .luna-burbuja {font-size:16px;max-width:95%;padding:12px 13px;}
+   .luna-enviar-form {grid-template-columns:minmax(0,1fr);gap:8px;padding:9px;}
+   #lunaEnviar {width:100%;}
+   #lunaEnviar {padding:0 12px;}
+ }
+ @media (prefers-color-scheme:dark) {
+   .luna-chat-panel,.luna-enviar-form,#lunaEstado {background:#1e1e1e;border-color:#3e5547;}
+   .luna-burbuja.asistente {background:#263b30;color:#f1f7f1;}
+   .luna-burbuja.usuario {background:#325240;color:#fff;}
+   #lunaPregunta {background:#282e2a;color:#fff;border-color:#526456;}
+   #lunaEstado {color:#b9d0c0;}
+ }
+
+</style></head><body>
+<header class="smp-header"><div class="smp-header-inner"><div class="smp-header-text"><h1>Senior Match Play La Herradura</h1><p class="smp-header-season">PRUEBAS · 2026–2027</p></div></div></header>
+<div class="card" style="margin:12px auto;max-width:1050px"><strong>AMBIENTE DE PRUEBAS · Datos ficticios · 1 de diciembre de 2026</strong><p>Sin conexión con producción, sin captura ni correos. Los nombres son ficticios.</p><label for="escenario">Escenario: </label><select id="escenario" onchange="inicializar()"><option value="nulos">Después del cierre (6 nulos)</option><option value="base">Antes del cierre (sin nulos)</option></select> <label for="jugadorPrueba">Jugador de prueba: </label><select id="jugadorPrueba" onchange="mostrarMisJuegos(PROGRAMACION);showTab('misjuegos')"></select><p id="controlPrueba"></p></div>
+<nav id="mainNav"><a id="nav-leaderboard" class="active-tab" onclick="showTab('leaderboard')">Leaderboard</a><a id="nav-jugadores" onclick="showTab('jugadores')">Jugadores</a><a id="nav-misjuegos" onclick="showTab('misjuegos')">Mis Juegos</a><a id="nav-resultados" onclick="showTab('resultados')">Resultados</a><a id="nav-playoffs" style="display:none">Playoffs</a></nav>
+<section id="leaderboard" class="tab"><div class="card"><h2>Clasificación de Grupos</h2><div id="groupsContainer"></div></div></section>
+<section id="jugadores" class="tab" style="display:none"><div class="card"><h2>Listado de Jugadores</h2><select id="ordenJugadores" onchange="renderizarJugadores()"><option value="grupo">Grupo</option><option value="nombre">Nombre</option></select><div id="playersContainer"></div></div></section>
+<section id="misjuegos" class="tab" style="display:none"><div class="card"><h2>Mis Juegos</h2><p id="misJuegosIntro"></p><div id="misJuegosContainer"></div></div></section>
+<section id="resultados" class="tab" style="display:none"><div class="card"><h2 id="resTitulo">Historial de Partidos</h2><div id="resetFilterContainer" style="display:none"><button class="resultBtn" onclick="regresarAOrigen()">Ver todos los partidos</button></div><span id="btnAgregarRes" style="display:none"></span><span id="radarContainer" style="display:none"></span><div class="table-wrapper" id="resultsContainer"></div></div></section>
+<footer>Pruebas aisladas · SMP</footer><script>
+const PARTICIPANTES=[{"nombre": "Jugador 1A", "grupo": "1", "ghin": ""}, {"nombre": "Jugador 1B", "grupo": "1", "ghin": ""}, {"nombre": "Jugador 1C", "grupo": "1", "ghin": ""}, {"nombre": "Jugador 1D", "grupo": "1", "ghin": ""}, {"nombre": "Jugador 1E", "grupo": "1", "ghin": ""}, {"nombre": "Jugador 1F", "grupo": "1", "ghin": ""}, {"nombre": "Jugador 2A", "grupo": "2", "ghin": ""}, {"nombre": "Jugador 2B", "grupo": "2", "ghin": ""}, {"nombre": "Jugador 2C", "grupo": "2", "ghin": ""}, {"nombre": "Jugador 2D", "grupo": "2", "ghin": ""}, {"nombre": "Jugador 2E", "grupo": "2", "ghin": ""}, {"nombre": "Jugador 2F", "grupo": "2", "ghin": ""}, {"nombre": "Jugador 3A", "grupo": "3", "ghin": ""}, {"nombre": "Jugador 3B", "grupo": "3", "ghin": ""}, {"nombre": "Jugador 3C", "grupo": "3", "ghin": ""}, {"nombre": "Jugador 3D", "grupo": "3", "ghin": ""}, {"nombre": "Jugador 3E", "grupo": "3", "ghin": ""}, {"nombre": "Jugador 3F", "grupo": "3", "ghin": ""}, {"nombre": "Jugador 4A", "grupo": "4", "ghin": ""}, {"nombre": "Jugador 4B", "grupo": "4", "ghin": ""}, {"nombre": "Jugador 4C", "grupo": "4", "ghin": ""}, {"nombre": "Jugador 4D", "grupo": "4", "ghin": ""}, {"nombre": "Jugador 4E", "grupo": "4", "ghin": ""}, {"nombre": "Jugador 4F", "grupo": "4", "ghin": ""}];
+const PROGRAMACION=[{"mes": "Noviembre", "orden": 1, "jugador1": "Jugador 1A", "jugador2": "Jugador 1B"}, {"mes": "Noviembre", "orden": 2, "jugador1": "Jugador 1C", "jugador2": "Jugador 1D"}, {"mes": "Noviembre", "orden": 3, "jugador1": "Jugador 1E", "jugador2": "Jugador 1F"}, {"mes": "Noviembre", "orden": 4, "jugador1": "Jugador 2A", "jugador2": "Jugador 2B"}, {"mes": "Noviembre", "orden": 5, "jugador1": "Jugador 2C", "jugador2": "Jugador 2D"}, {"mes": "Noviembre", "orden": 6, "jugador1": "Jugador 2E", "jugador2": "Jugador 2F"}, {"mes": "Noviembre", "orden": 7, "jugador1": "Jugador 3A", "jugador2": "Jugador 3B"}, {"mes": "Noviembre", "orden": 8, "jugador1": "Jugador 3C", "jugador2": "Jugador 3D"}, {"mes": "Noviembre", "orden": 9, "jugador1": "Jugador 3E", "jugador2": "Jugador 3F"}, {"mes": "Noviembre", "orden": 10, "jugador1": "Jugador 4A", "jugador2": "Jugador 4B"}, {"mes": "Noviembre", "orden": 11, "jugador1": "Jugador 4C", "jugador2": "Jugador 4D"}, {"mes": "Noviembre", "orden": 12, "jugador1": "Jugador 4E", "jugador2": "Jugador 4F"}, {"mes": "Diciembre", "orden": 1, "jugador1": "Jugador 1C", "jugador2": "Jugador 1A"}, {"mes": "Diciembre", "orden": 2, "jugador1": "Jugador 1E", "jugador2": "Jugador 1D"}, {"mes": "Diciembre", "orden": 3, "jugador1": "Jugador 1F", "jugador2": "Jugador 1B"}, {"mes": "Diciembre", "orden": 4, "jugador1": "Jugador 2D", "jugador2": "Jugador 2B"}, {"mes": "Diciembre", "orden": 5, "jugador1": "Jugador 2C", "jugador2": "Jugador 2F"}, {"mes": "Diciembre", "orden": 6, "jugador1": "Jugador 2E", "jugador2": "Jugador 2A"}, {"mes": "Diciembre", "orden": 7, "jugador1": "Jugador 3D", "jugador2": "Jugador 3F"}, {"mes": "Diciembre", "orden": 8, "jugador1": "Jugador 3A", "jugador2": "Jugador 3E"}, {"mes": "Diciembre", "orden": 9, "jugador1": "Jugador 3C", "jugador2": "Jugador 3B"}, {"mes": "Diciembre", "orden": 10, "jugador1": "Jugador 4C", "jugador2": "Jugador 4A"}, {"mes": "Diciembre", "orden": 11, "jugador1": "Jugador 4F", "jugador2": "Jugador 4B"}, {"mes": "Diciembre", "orden": 12, "jugador1": "Jugador 4E", "jugador2": "Jugador 4D"}, {"mes": "Enero", "orden": 1, "jugador1": "Jugador 1E", "jugador2": "Jugador 1B"}, {"mes": "Enero", "orden": 2, "jugador1": "Jugador 1F", "jugador2": "Jugador 1C"}, {"mes": "Enero", "orden": 3, "jugador1": "Jugador 1D", "jugador2": "Jugador 1A"}, {"mes": "Enero", "orden": 4, "jugador1": "Jugador 2D", "jugador2": "Jugador 2E"}, {"mes": "Enero", "orden": 5, "jugador1": "Jugador 2F", "jugador2": "Jugador 2A"}, {"mes": "Enero", "orden": 6, "jugador1": "Jugador 2C", "jugador2": "Jugador 2B"}, {"mes": "Enero", "orden": 7, "jugador1": "Jugador 3B", "jugador2": "Jugador 3E"}, {"mes": "Enero", "orden": 8, "jugador1": "Jugador 3D", "jugador2": "Jugador 3A"}, {"mes": "Enero", "orden": 9, "jugador1": "Jugador 3C", "jugador2": "Jugador 3F"}, {"mes": "Enero", "orden": 10, "jugador1": "Jugador 4D", "jugador2": "Jugador 4A"}, {"mes": "Enero", "orden": 11, "jugador1": "Jugador 4F", "jugador2": "Jugador 4C"}, {"mes": "Enero", "orden": 12, "jugador1": "Jugador 4E", "jugador2": "Jugador 4B"}, {"mes": "Febrero", "orden": 1, "jugador1": "Jugador 1B", "jugador2": "Jugador 1C"}, {"mes": "Febrero", "orden": 2, "jugador1": "Jugador 1E", "jugador2": "Jugador 1A"}, {"mes": "Febrero", "orden": 3, "jugador1": "Jugador 1D", "jugador2": "Jugador 1F"}, {"mes": "Febrero", "orden": 4, "jugador1": "Jugador 2F", "jugador2": "Jugador 2D"}, {"mes": "Febrero", "orden": 5, "jugador1": "Jugador 2C", "jugador2": "Jugador 2A"}, {"mes": "Febrero", "orden": 6, "jugador1": "Jugador 2B", "jugador2": "Jugador 2E"}, {"mes": "Febrero", "orden": 7, "jugador1": "Jugador 3B", "jugador2": "Jugador 3D"}, {"mes": "Febrero", "orden": 8, "jugador1": "Jugador 3F", "jugador2": "Jugador 3A"}, {"mes": "Febrero", "orden": 9, "jugador1": "Jugador 3C", "jugador2": "Jugador 3E"}, {"mes": "Febrero", "orden": 10, "jugador1": "Jugador 4D", "jugador2": "Jugador 4F"}, {"mes": "Febrero", "orden": 11, "jugador1": "Jugador 4B", "jugador2": "Jugador 4C"}, {"mes": "Febrero", "orden": 12, "jugador1": "Jugador 4E", "jugador2": "Jugador 4A"}, {"mes": "Marzo", "orden": 1, "jugador1": "Jugador 1A", "jugador2": "Jugador 1F"}, {"mes": "Marzo", "orden": 2, "jugador1": "Jugador 1B", "jugador2": "Jugador 1D"}, {"mes": "Marzo", "orden": 3, "jugador1": "Jugador 1E", "jugador2": "Jugador 1C"}, {"mes": "Marzo", "orden": 4, "jugador1": "Jugador 2A", "jugador2": "Jugador 2D"}, {"mes": "Marzo", "orden": 5, "jugador1": "Jugador 2C", "jugador2": "Jugador 2E"}, {"mes": "Marzo", "orden": 6, "jugador1": "Jugador 2B", "jugador2": "Jugador 2F"}, {"mes": "Marzo", "orden": 7, "jugador1": "Jugador 3F", "jugador2": "Jugador 3B"}, {"mes": "Marzo", "orden": 8, "jugador1": "Jugador 3C", "jugador2": "Jugador 3A"}, {"mes": "Marzo", "orden": 9, "jugador1": "Jugador 3E", "jugador2": "Jugador 3D"}, {"mes": "Marzo", "orden": 10, "jugador1": "Jugador 4A", "jugador2": "Jugador 4F"}, {"mes": "Marzo", "orden": 11, "jugador1": "Jugador 4B", "jugador2": "Jugador 4D"}, {"mes": "Marzo", "orden": 12, "jugador1": "Jugador 4E", "jugador2": "Jugador 4C"}];
+const JUGADOS=[{"fecha": "2026-11-05", "grupores": "4", "nombreres": "Jugador 4A", "perdedor": "Jugador 4C", "diferencia": 3, "tiporesultado": ""}, {"fecha": "2026-11-14", "grupores": "3", "nombreres": "Jugador 3A", "perdedor": "Jugador 3B", "diferencia": 5, "tiporesultado": ""}, {"fecha": "2026-11-16", "grupores": "1", "nombreres": "Jugador 1C", "perdedor": "Jugador 1D", "diferencia": 6, "tiporesultado": ""}, {"fecha": "2026-11-16", "grupores": "1", "nombreres": "Jugador 1F", "perdedor": "Jugador 1E", "diferencia": 1, "tiporesultado": ""}, {"fecha": "2026-11-20", "grupores": "2", "nombreres": "Jugador 2E", "perdedor": "Jugador 2F", "diferencia": 8, "tiporesultado": ""}, {"fecha": "2026-11-20", "grupores": "4", "nombreres": "Jugador 4E", "perdedor": "Jugador 4F", "diferencia": 11, "tiporesultado": ""}, {"fecha": "2026-11-21", "grupores": "1", "nombreres": "Jugador 1A", "perdedor": "Jugador 1B", "diferencia": 1, "tiporesultado": ""}];
+const NULOS=[{"fecha": "2026-12-01", "grupores": "2", "nombreres": "Jugador 2A", "perdedor": "Jugador 2B", "diferencia": 0, "tiporesultado": "NULO"}, {"fecha": "2026-12-01", "grupores": "2", "nombreres": "Jugador 2C", "perdedor": "Jugador 2D", "diferencia": 0, "tiporesultado": "NULO"}, {"fecha": "2026-12-01", "grupores": "3", "nombreres": "Jugador 3C", "perdedor": "Jugador 3D", "diferencia": 0, "tiporesultado": "NULO"}, {"fecha": "2026-12-01", "grupores": "3", "nombreres": "Jugador 3E", "perdedor": "Jugador 3F", "diferencia": 0, "tiporesultado": "NULO"}, {"fecha": "2026-12-01", "grupores": "4", "nombreres": "Jugador 4A", "perdedor": "Jugador 4B", "diferencia": 0, "tiporesultado": "NULO"}, {"fecha": "2026-12-01", "grupores": "4", "nombreres": "Jugador 4C", "perdedor": "Jugador 4D", "diferencia": 0, "tiporesultado": "NULO"}];
+let fechaInicioPlayoffs = new Date("2027-04-06T00:00:00");
+let fechaFinPlayoffs = new Date("2027-05-31T23:59:59");
+let allMatches = [], globalLeaderboard = {}, datosJugadores = [], origenFiltro = 'leaderboard', jugadorFiltradoActual = null;
+async function fetchSheetJSON(sheetName) {
+ const data = {Participantes: PARTICIPANTES, Programacion: PROGRAMACION, Resultados: document.getElementById('escenario').value === 'nulos' ? [...JUGADOS,...NULOS] : JUGADOS, Calendario: []};
+ return JSON.parse(JSON.stringify(data[sheetName] || []));
+}
+function showTab(tabId) {
+ document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
+ document.querySelectorAll('#mainNav a').forEach(a => a.classList.remove('active-tab'));
+ document.getElementById(tabId).style.display = 'block';
+ document.getElementById('nav-' + tabId).classList.add('active-tab');
+ window.scrollTo(0,0);
+}
+function esMatchNulo(m) {
+ return String(m.TipoResultado || "").trim().toUpperCase() === "NULO";
+}
+
+function renderTableResultados(dataArray) {
+ const container = document.getElementById("resultsContainer");
+ if (dataArray.length === 0) {
+ container.innerHTML = "<p style='text-align:center; opacity: 0.7;'>No hay partidos registrados todavía.</p>";
+ return;
+ }
+ 
+ let html = `<table><tr><th>Fecha</th><th>Grupo/Fase</th><th>Ganador</th><th>Perdedor</th><th>Dif</th></tr>`;
+ dataArray.forEach(r => {
+ if (esMatchNulo(r)) {
+  html += `<tr><td>${r.Fecha}</td><td>${r.GrupoRes}</td><td colspan="2">${r.NombreRes} vs ${r.Perdedor}</td><td style="font-weight:bold;">NULO (0)</td></tr>`;
+  return;
+ }
+ let displayDiff = r.Diferencia;
+ let diffClass = "";
+ if (jugadorFiltradoActual) {
+ const g = (r.NombreRes || "").trim();
+ const p = (r.Perdedor || "").trim();
+ const act = jugadorFiltradoActual.trim();
+ if (p === act) { displayDiff = "-" + r.Diferencia; diffClass = "neg-diff"; }
+ else if (g === act) { displayDiff = "+" + r.Diferencia; diffClass = "pos-diff"; }
+ }
+ html += `<tr><td>${r.Fecha}</td><td>${r.GrupoRes}</td><td style="font-weight:bold">${r.NombreRes}</td><td>${r.Perdedor}</td><td class="${diffClass}">${displayDiff}</td></tr>`;
+ });
+ container.innerHTML = html + "</table>";
+}
+
+function filtrarPorJugador(nombre, desdeDonde) {
+ origenFiltro = desdeDonde;
+ jugadorFiltradoActual = nombre; 
+ const filtrados = allMatches.filter(m => (m.NombreRes && m.NombreRes.trim() === nombre.trim()) || (m.Perdedor && m.Perdedor.trim() === nombre.trim()));
+ document.getElementById('resTitulo').innerText = "Partidos de: " + nombre;
+ document.getElementById('resetFilterContainer').style.display = 'block';
+ document.getElementById('btnAgregarRes').style.display = 'none';
+ document.getElementById('radarContainer').style.display = 'none';
+ renderTableResultados(filtrados);
+ showTab('resultados');
+}
+
+function regresarAOrigen() {
+ jugadorFiltradoActual = null; 
+ document.getElementById('resTitulo').innerText = "Historial de Partidos";
+ document.getElementById('resetFilterContainer').style.display = 'none';
+ document.getElementById('btnAgregarRes').style.display = 'none';
+ document.getElementById('btnAgregarRes').innerHTML = ' Capturar Resultado';
+ document.getElementById('btnAgregarRes').style.background = '#145a32';
+ renderTableResultados(allMatches); 
+ showTab(origenFiltro);
+}
+
+
+function normalizarNombre(nombre) {
+ return (nombre || "")
+ .toString()
+ .normalize("NFD")
+ .replace(/[\u0300-\u036f]/g, "")
+ .replace(/\s+/g, " ")
+ .trim()
+ .toLowerCase();
+}
+
+function buscarResultadoEntre(jugador1, jugador2) {
+ const a = normalizarNombre(jugador1);
+ const b = normalizarNombre(jugador2);
+
+ return allMatches.find(m => {
+ if (!/^[1-4]$/.test(String(m.GrupoRes).trim())) return false;
+ const ganador = normalizarNombre(m.NombreRes);
+ const perdedor = normalizarNombre(m.Perdedor);
+ return (ganador === a && perdedor === b) || (ganador === b && perdedor === a);
+ });
+}
+
+function enlaceWhatsAppJugador(nombre) { return nombre; }
+
+function mostrarMisJuegos(programacion) {
+ const contenedor = document.getElementById("misJuegosContainer");
+ const intro = document.getElementById("misJuegosIntro");
+ if (!contenedor || !intro) return;
+
+ const jugadorActual = document.getElementById("jugadorPrueba").value;
+ if (!jugadorActual) {
+ intro.innerText = "No fue posible identificar al jugador de la sesión.";
+ contenedor.innerHTML = "<div class='empty-games'>Vuelve a iniciar sesión para consultar tu programación.</div>";
+ return;
+ }
+
+ intro.innerText = `Programación de ${jugadorActual}. Puedes adelantar un partido de común acuerdo con tu rival.`;
+
+ const actualNorm = normalizarNombre(jugadorActual);
+ const ordenMes = {
+  noviembre: 0,
+  diciembre: 1,
+  enero: 2,
+  febrero: 3,
+  marzo: 4,
+  abril: 5,
+  mayo: 6,
+  junio: 7,
+  julio: 8,
+  agosto: 9,
+  septiembre: 10,
+  octubre: 11
+ };
+ const obtenerOrdenMes = valor => {
+  const texto = String(valor || "")
+   .trim()
+   .toLocaleLowerCase("es")
+   .normalize("NFD")
+   .replace(/[\u0300-\u036f]/g, "");
+  const coincidencia = texto.match(/enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|setiembre|octubre|noviembre|diciembre/);
+  if (!coincidencia) return 99;
+  const mes = coincidencia[0] === "setiembre" ? "septiembre" : coincidencia[0];
+  return ordenMes[mes] ?? 99;
+ };
+ const propios = (programacion || [])
+ .map(p => ({
+ Mes: p.mes || p.Mes || "",
+ Orden: Number(p.orden || p.Orden || 999),
+ Jugador1: p.jugador1 || p.Jugador1 || "",
+ Jugador2: p.jugador2 || p.Jugador2 || ""
+ }))
+ .filter(p => normalizarNombre(p.Jugador1) === actualNorm || normalizarNombre(p.Jugador2) === actualNorm)
+ .map(p => {
+ const rival = normalizarNombre(p.Jugador1) === actualNorm ? p.Jugador2 : p.Jugador1;
+ const resultado = buscarResultadoEntre(jugadorActual, rival);
+ return {...p, Rival:rival, ResultadoEncontrado:resultado};
+ })
+ .sort((a,b) => {
+  const diferenciaMes = obtenerOrdenMes(a.Mes) - obtenerOrdenMes(b.Mes);
+  if (diferenciaMes !== 0) return diferenciaMes;
+  return a.Orden - b.Orden;
+ });
+
+ const pendientes = propios.filter(p => !p.ResultadoEncontrado);
+ const cerrados = propios.filter(p => p.ResultadoEncontrado);
+ const nulos = cerrados.filter(p => esMatchNulo(p.ResultadoEncontrado));
+ const jugados = cerrados.filter(p => !esMatchNulo(p.ResultadoEncontrado));
+
+ let html = `
+ <div class="games-summary">
+ <div class="games-pill">${pendientes.length} pendiente${pendientes.length === 1 ? "" : "s"}</div>
+ <div class="games-pill">${jugados.length} jugado${jugados.length === 1 ? "" : "s"}</div>
+ <div class="games-pill">${nulos.length} nulo${nulos.length === 1 ? "" : "s"}</div>
+ </div>
+ <div class="games-section-title">Juegos pendientes</div>
+ `;
+
+ if (pendientes.length === 0) {
+ html += "<div class='empty-games'>No tienes juegos pendientes.</div>";
+ } else {
+ html += "<div class='game-list'>";
+ pendientes.forEach(p => {
+ html += `
+ <div class="game-card">
+ <div class="game-month">${p.Mes || "Mes por definir"}</div>
+ <div class="game-rival">${enlaceWhatsAppJugador(p.Rival)}</div>
+ <div class="game-status"><strong>Pendiente</strong></div>
+ </div>`;
+ });
+ html += "</div>";
+ }
+
+ html += `<div class="games-section-title">Juegos cerrados</div>`;
+
+ if (cerrados.length === 0) {
+ html += "<div class='empty-games'>Todavía no hay juegos cerrados de esta programación.</div>";
+ } else {
+ html += "<div class='game-list'>";
+ cerrados.forEach(p => {
+ const r = p.ResultadoEncontrado;
+ const nulo = esMatchNulo(r);
+ const gano = normalizarNombre(r.NombreRes) === actualNorm;
+ const diff = nulo ? " · Dif. 0" : (r.Diferencia ? ` · Dif. ${r.Diferencia}` : "");
+ const estado = nulo ? "Match Nulo" : (gano ? "Ganado" : "Perdido");
+ html += `
+ <div class="game-card played">
+ <div class="game-month">${p.Mes || "Mes por definir"}</div>
+ <div class="game-rival">${enlaceWhatsAppJugador(p.Rival)}</div>
+ <div class="game-status"><strong>${estado}</strong>${diff}${r.Fecha ? ` · ${r.Fecha}` : ""}</div>
+ </div>`;
+ });
+ html += "</div>";
+ }
+
+ contenedor.innerHTML = html;
+}
+
+function renderizarJugadores() {
+ const contenedor = document.getElementById("playersContainer");
+ if (!contenedor) return;
+
+ const modo = document.getElementById("ordenJugadores")?.value || "grupo";
+ const pData = [...datosJugadores].filter(p => p.Nombre);
+ const compararNombre = (a,b) => (a.Nombre || "").localeCompare(b.Nombre || "", "es", {sensitivity:"base"});
+ const compararGrupo = (a,b) => {
+  const grupoA = String(a.Grupo || "").trim();
+  const grupoB = String(b.Grupo || "").trim();
+  if (!grupoA && grupoB) return 1;
+  if (grupoA && !grupoB) return -1;
+  return grupoA.localeCompare(grupoB, "es", {numeric:true, sensitivity:"base"});
+ };
+
+ pData.sort((a,b) => modo === "nombre"
+  ? (compararNombre(a,b) || compararGrupo(a,b))
+  : (compararGrupo(a,b) || compararNombre(a,b))
+ );
+
+ let html = "<div class='table-wrapper'><table><tr><th>Jugador</th><th>Grupo</th><th>GHIN</th></tr>";
+ pData.forEach(p => {
+  html += `<tr><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')" style="text-align:left;">${p.Nombre}</td><td>${p.Grupo || ''}</td><td>${p.GHIN || ''}</td></tr>`;
+ });
+ contenedor.innerHTML = html + "</table></div>";
+}
+
+async function inicializar() {
+ try {
+ jugadorFiltradoActual = null;
+ globalLeaderboard = {};
+ document.getElementById("resTitulo").innerText = "Historial de Partidos";
+ document.getElementById("resetFilterContainer").style.display = "none";
+ let rawFechas = await fetchSheetJSON("Calendario");
+ if (rawFechas.length > 0) {
+ let minD = new Date("2099-12-31T00:00:00");
+ let maxD = new Date("2000-01-01T00:00:00");
+ 
+ rawFechas.forEach(r => {
+ let nombreFase = (r.fase || "").toString().toLowerCase();
+ if (nombreFase !== "grupos" && nombreFase !== "") {
+ let dI = new Date(r.fechainicio || "");
+ let dF = new Date(r.fechafin || "");
+ if (!isNaN(dI) && dI < minD) minD = dI;
+ if (!isNaN(dF) && dF > maxD) maxD = dF;
+ }
+ });
+ if (minD < new Date("2099-12-31T00:00:00")) fechaInicioPlayoffs = minD;
+ if (maxD > new Date("2000-01-01T00:00:00")) fechaFinPlayoffs = maxD;
+ }
+
+ const hoy = new Date("2026-12-01T12:00:00");
+ 
+ // NUEVO: Candado duro local. Mes 2 es Marzo (Enero=0, Feb=1, Mar=2), Día 16.
+ const candadoEstricto = new Date(2026, 2, 16, 0, 0, 0); 
+
+ if (hoy >= candadoEstricto && hoy >= fechaInicioPlayoffs && hoy <= fechaFinPlayoffs) {
+ document.getElementById('nav-playoffs').style.display = 'block';
+ }
+
+ let rawMatches = await fetchSheetJSON("Resultados");
+ allMatches = rawMatches.map(m => ({
+ Fecha: m.fecha || m.Fecha || "",
+ GrupoRes: m.grupores || m.grupo || m.GrupoRes || "",
+ NombreRes: m.nombreres || m.ganador || m.NombreRes || "",
+ Perdedor: m.perdedor || m.Perdedor || "",
+ Diferencia: m.diferencia ?? m.diff ?? m.Diferencia ?? "",
+ TipoResultado: String(m.tiporesultado || m.TipoResultado || "JUGADO").trim().toUpperCase()
+ })).filter(m => m.NombreRes !== "").sort((a,b) => new Date(b.Fecha) - new Date(a.Fecha));
+
+
+ let rawProgramacion = await fetchSheetJSON("Programacion");
+
+ let faseGruposMatches = [];
+ let playoffMatches = [];
+ 
+ allMatches.forEach(m => {
+ let partesFecha = m.Fecha.split('/');
+ let matchDate;
+ if (partesFecha.length === 3) {
+ matchDate = new Date(`${partesFecha[2]}-${partesFecha[1]}-${partesFecha[0]}T12:00:00`); 
+ if(isNaN(matchDate)) matchDate = new Date(m.Fecha);
+ } else {
+ matchDate = new Date(m.Fecha);
+ }
+
+ if (!esMatchNulo(m) && !isNaN(matchDate) && matchDate >= fechaInicioPlayoffs) {
+ playoffMatches.push(m);
+ } else {
+ faseGruposMatches.push(m);
+ }
+ });
+
+ let rawPlayers = await fetchSheetJSON("Participantes");
+  
+ let players = {};
+
+ // Crear la tabla desde los participantes para que los grupos aparezcan
+ // incluso antes de capturar el primer resultado.
+ rawPlayers.forEach(r => {
+ const nombre = (r.nombre || r.Nombre || "").toString().trim();
+ const grupo = (r.grupo || r.Grupo || "").toString().trim();
+ if (nombre) players[nombre] = {nombre, grupo, jj:0, jg:0, jp:0, mn:0, diff:0};
+ });
+
+ faseGruposMatches.forEach(m => {
+ const ganador = (m.NombreRes || "").toString().trim();
+ const perdedor = (m.Perdedor || "").toString().trim();
+ const grupo = (m.GrupoRes || "").toString().trim();
+ const diferencia = Number(m.Diferencia) || 0;
+ if (!ganador || !perdedor) return;
+ if (!players[ganador]) players[ganador] = {nombre:ganador, grupo, jj:0, jg:0, jp:0, mn:0, diff:0};
+ if (!players[perdedor]) players[perdedor] = {nombre:perdedor, grupo, jj:0, jg:0, jp:0, mn:0, diff:0};
+ if (!players[ganador].grupo && grupo) players[ganador].grupo = grupo;
+ if (!players[perdedor].grupo && grupo) players[perdedor].grupo = grupo;
+ if (esMatchNulo(m)) {
+  players[ganador].jj++;
+  players[perdedor].jj++;
+  players[ganador].mn++;
+  players[perdedor].mn++;
+  return;
+ }
+ players[ganador].jj++;
+ players[ganador].jg++;
+ players[ganador].diff += diferencia;
+ players[perdedor].jj++;
+ players[perdedor].jp++;
+ players[perdedor].diff -= diferencia;
+ });
+
+ let groups = {};
+ Object.values(players).forEach(p => {
+ const grupo = p.grupo || "Sin grupo";
+ if (!groups[grupo]) groups[grupo] = [];
+ groups[grupo].push(p);
+ });
+
+ let lbHtml = "";
+ if (Object.keys(groups).length === 0) {
+ lbHtml = "<p style='text-align:center; opacity:0.7; padding:20px;'>Aún no hay participantes para mostrar el Leaderboard.</p>";
+ }
+ Object.keys(groups).sort((a,b) => a.localeCompare(b, "es", {numeric:true, sensitivity:"base"})).forEach(g => {
+ const sorted = groups[g].sort((a,b) => b.jg - a.jg || b.diff - a.diff || a.nombre.localeCompare(b.nombre, "es", {sensitivity:"base"}));
+ lbHtml += `<div class="groupTitle">${g === "Sin grupo" ? g : `Grupo ${g}`}</div><div class="table-wrapper"><table><tr><th>Jugador</th><th>JJ</th><th>JG</th><th>JP</th><th>MN</th><th>Dif</th></tr>`;
+ sorted.forEach((p, i) => {
+ globalLeaderboard[p.nombre] = {pos:i+1, grupo:g};
+ const clase = !groups[g].some(j => j.jg > 0) ? "" : (i === 0 ? "firstPlace" : (i === 1 ? "secondPlace" : ""));
+ lbHtml += `<tr class="${clase}"><td class="clickable-name" onclick="filtrarPorJugador('${p.nombre}', 'leaderboard')">${p.nombre}</td><td>${p.jj}</td><td>${p.jg}</td><td>${p.jp}</td><td>${p.mn}</td><td>${p.diff}</td></tr>`;
+ });
+ lbHtml += "</table></div>";
+ });
+ if (Object.keys(groups).length > 0) {
+  lbHtml += '<p style="font-size:12px;opacity:0.8;">JJ: encuentros cerrados (incluye MN). MN: Matches Nulos.</p>';
+ }
+ document.getElementById("groupsContainer").innerHTML = lbHtml;
+
+ datosJugadores = rawPlayers.map(p => ({
+ Nombre: p.nombre || p.Nombre || "",
+ Grupo: p.grupo || p.Grupo || "",
+ GHIN: p.ghin || p.GHIN || "",
+ Telefono: p.telefono || p.Telefono || p.teléfono || p.Teléfono || p["Teléfono"] || p["Número de teléfono"] || p.númerodeteléfono || p.celular || p.Celular || ""
+ }));
+ renderizarJugadores();
+ mostrarMisJuegos(rawProgramacion);
+
+ renderTableResultados(allMatches);
+ const tot = Object.values(players).reduce((a,p)=>({jj:a.jj+p.jj,jg:a.jg+p.jg,jp:a.jp+p.jp,mn:a.mn+p.mn,diff:a.diff+p.diff}),{jj:0,jg:0,jp:0,mn:0,diff:0});
+ document.getElementById('controlPrueba').textContent = `Jugados: ${tot.jg} | Nulos: ${tot.mn/2} | Pendientes: ${rawProgramacion.length-tot.jj/2} | Suma MN: ${tot.mn} | JG: ${tot.jg} | JP: ${tot.jp} | DIF neto: ${tot.diff}`;
+ } catch (e) { 
+ document.getElementById("groupsContainer").innerHTML = `
+ <div style='color:#c0392b; background:#fdf5e6; padding:25px; border-radius:8px; text-align:center; font-weight:bold; border: 2px solid #e67e22;'>
+  ERROR DETECTADO<br><br>
+ ${e.message}<br><br>
+ <span style="font-weight:normal; font-size:14px; opacity:0.8;">Revisa los datos ficticios de esta prueba.</span>
+ </div>`; 
+ }
+}
+
+
+window.onload = function() {
+ const selector=document.getElementById('jugadorPrueba');
+ PARTICIPANTES.forEach(p=>{const o=document.createElement('option');o.value=p.nombre;o.textContent=p.nombre;selector.appendChild(o);});
+ selector.value='Jugador 2A';
+ inicializar();
+};
+</script></body></html>
