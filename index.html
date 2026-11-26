@@ -286,7 +286,7 @@
  <a onclick="showTab('jugadores')" id="nav-jugadores">Jugadores</a>
  <a onclick="showTab('misjuegos')" id="nav-misjuegos">Mis Juegos</a>
  <a onclick="showTab('luna')" id="nav-luna">LUNA</a>
- <a onclick="showTab('resultados')" id="nav-resultados">Resultados</a>
+ <a onclick="mostrarResultadosGenerales()" id="nav-resultados">Resultados</a>
  <a onclick="showTab('noticias')" id="nav-noticias">Noticias </a>
  <a onclick="showTab('contacto')" id="nav-contacto">Contacto</a>
  <a onclick="showTab('bases')" id="nav-bases">Bases</a>
@@ -1158,6 +1158,16 @@ function mostrarTodosPartidosJugador() {
  }
  document.getElementById('resTitulo').innerText = 'Partidos de: ' + nombre;
  document.getElementById('resultsContainer').innerHTML = html;
+}
+
+// Al elegir Resultados desde el menú, mostrar siempre el historial completo.
+function mostrarResultadosGenerales() {
+ jugadorFiltradoActual = null;
+ document.getElementById('resTitulo').innerText = 'Historial de Partidos';
+ document.getElementById('resetFilterContainer').style.display = 'none';
+ document.getElementById('btnAgregarRes').style.display = 'inline-block';
+ renderTableResultados(allMatches);
+ showTab('resultados');
 }
 
 function regresarAOrigen() {
