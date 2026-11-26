@@ -357,7 +357,7 @@
  <div class="card">
  <h2 id="resTitulo">Historial de Partidos</h2>
  <div id="resetFilterContainer" style="display:none; margin-bottom: 15px;">
- <button onclick="regresarAOrigen()" class="resultBtn" style="background: #2e86de;"> Ver todos los partidos</button>
+ <button onclick="mostrarTodosPartidosJugador()" class="resultBtn" style="background: #2e86de;"> Ver todos los partidos</button>
  </div>
  
  <button id="btnAgregarRes" class="resultBtn" onclick="toggleRadar()"> Capturar Resultado</button>
@@ -442,7 +442,9 @@ let allMatches = [];
 let globalLeaderboard = {}; 
 let datosJugadores = [];
 let origenFiltro = 'leaderboard';
-let jugadorFiltradoActual = null; 
+let jugadorFiltradoActual = null;
+let programacionGlobal = []; // Calendario oficial para la vista individual de todos los encuentros.
+let vistaCalendarioJugador = false; 
 
 // --- CONTROL DE ACCESO E INSCRIPCIÓN ---
 function mostrarRegistro() {
@@ -1094,8 +1096,8 @@ function renderTableResultados(dataArray) {
  const g = (r.NombreRes || "").trim();
  const p = (r.Perdedor || "").trim();
  const act = jugadorFiltradoActual.trim();
- if (p === act) { displayDiff = "-" + r.Diferencia; diffClass = "neg-diff"; }
- else if (g === act) { displayDiff = "+" + r.Diferencia; diffClass = "pos-diff"; }
+ if (normalizarNombre(p) === normalizarNombre(act)) { displayDiff = "-" + r.Diferencia; diffClass = "neg-diff"; }
+ else if (normalizarNombre(g) === normalizarNombre(act)) { displayDiff = "+" + r.Diferencia; diffClass = "pos-diff"; }
  }
  html += `<tr><td>${r.Fecha}</td><td>${r.GrupoRes}</td><td style="font-weight:bold">${r.NombreRes}</td><td>${r.Perdedor}</td><td class="${diffClass}">${displayDiff}</td></tr>`;
  });
@@ -1104,24 +1106,93 @@ function renderTableResultados(dataArray) {
 
 function filtrarPorJugador(nombre, desdeDonde) {
  origenFiltro = desdeDonde;
- jugadorFiltradoActual = nombre; 
- const filtrados = allMatches.filter(m => (m.NombreRes && m.NombreRes.trim() === nombre.trim()) || (m.Perdedor && m.Perdedor.trim() === nombre.trim()));
- document.getElementById('resTitulo').innerText = "Partidos de: " + nombre;
+ jugadorFiltradoActual = nombre;
+ vistaCalendarioJugador = false;
+ const seleccionado = normalizarNombre(nombre);
+ const filtrados = allMatches.filter(m =>
+  normalizarNombre(m.NombreRes) === seleccionado ||
+  normalizarNombre(m.Perdedor) === seleccionado
+ );
+ document.getElementById('resTitulo').innerText = "Resultados de: " + nombre;
  document.getElementById('resetFilterContainer').style.display = 'block';
+ document.querySelector('#resetFilterContainer button').textContent = 'Ver todos los partidos';
  document.getElementById('btnAgregarRes').style.display = 'none';
  document.getElementById('radarContainer').style.display = 'none';
  renderTableResultados(filtrados);
  showTab('resultados');
 }
 
+// Muestra los cinco juegos programados del jugador elegido desde Jugadores o Leaderboard.
+// El mismo botón permite volver a la vista de resultados individuales.
+function mostrarTodosPartidosJugador() {
+ if (!jugadorFiltradoActual) return;
+ const boton = document.querySelector('#resetFilterContainer button');
+ const nombre = jugadorFiltradoActual;
+ const nombreNormalizado = normalizarNombre(nombre);
+
+ if (vistaCalendarioJugador) {
+  vistaCalendarioJugador = false;
+  const filtrados = allMatches.filter(m =>
+   normalizarNombre(m.NombreRes) === nombreNormalizado ||
+   normalizarNombre(m.Perdedor) === nombreNormalizado
+  );
+  document.getElementById('resTitulo').innerText = 'Resultados de: ' + nombre;
+  boton.textContent = 'Ver todos los partidos';
+  renderTableResultados(filtrados);
+  return;
+ }
+
+ const ordenMes = {noviembre:0, diciembre:1, enero:2, febrero:3, marzo:4};
+ const juegos = programacionGlobal.map(p => ({
+  mes: String(p.mes || p.Mes || '').trim(),
+  orden: Number(p.orden ?? p.Orden ?? 999),
+  jugador1: String(p.jugador1 || p.Jugador1 || '').trim(),
+  jugador2: String(p.jugador2 || p.Jugador2 || '').trim(),
+  fechaLimite: String(p.fechalimite || p.FechaLimite || '').trim()
+ })).filter(p => normalizarNombre(p.jugador1) === nombreNormalizado ||
+                 normalizarNombre(p.jugador2) === nombreNormalizado)
+   .sort((a,b) => (ordenMes[normalizarNombre(a.mes)] ?? 99) -
+                  (ordenMes[normalizarNombre(b.mes)] ?? 99) || a.orden-b.orden);
+
+ const escapar = valor => String(valor ?? '').replace(/[&<>"']/g, caracter =>
+  ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[caracter]));
+ let html = '<table><tr><th>Mes</th><th>Rival</th><th>Fecha límite</th><th>Estado / Resultado</th></tr>';
+ juegos.forEach(p => {
+  const rival = normalizarNombre(p.jugador1) === nombreNormalizado ? p.jugador2 : p.jugador1;
+  const resultado = buscarResultadoEntre(nombre, rival);
+  let estado = 'Pendiente';
+  if (resultado) {
+   if (esMatchNulo(resultado)) {
+    estado = 'Match nulo';
+   } else {
+    const gano = normalizarNombre(resultado.NombreRes) === nombreNormalizado;
+    const diferencia = resultado.Diferencia !== '' ? ` por ${escapar(resultado.Diferencia)} hoyo(s)` : '';
+    estado = (gano ? 'Ganó' : 'Perdió') + diferencia;
+   }
+   if (resultado.Fecha) estado += ' · ' + escapar(resultado.Fecha);
+  }
+  html += `<tr><td>${escapar(p.mes)}</td><td>${escapar(rival)}</td><td>${escapar(p.fechaLimite)}</td><td>${estado}</td></tr>`;
+ });
+ html += '</table>';
+ if (juegos.length === 0) {
+  html = '<p>No se encontró programación para este jugador.</p>';
+ }
+ document.getElementById('resTitulo').innerText = 'Todos los partidos de: ' + nombre;
+ document.getElementById('resultsContainer').innerHTML = html;
+ boton.textContent = 'Ver resultados del jugador';
+ vistaCalendarioJugador = true;
+}
+
 function regresarAOrigen() {
- jugadorFiltradoActual = null; 
+ jugadorFiltradoActual = null;
+ vistaCalendarioJugador = false;
  document.getElementById('resTitulo').innerText = "Historial de Partidos";
  document.getElementById('resetFilterContainer').style.display = 'none';
+ document.querySelector('#resetFilterContainer button').textContent = 'Ver todos los partidos';
  document.getElementById('btnAgregarRes').style.display = 'inline-block';
  document.getElementById('btnAgregarRes').innerHTML = ' Capturar Resultado';
  document.getElementById('btnAgregarRes').style.background = '#145a32';
- renderTableResultados(allMatches); 
+ renderTableResultados(allMatches);
  showTab(origenFiltro);
 }
 
@@ -1518,6 +1589,7 @@ async function inicializar() {
 
 
  let rawProgramacion = await fetchSheetJSON("Programacion");
+ programacionGlobal = rawProgramacion;
 
  let faseGruposMatches = [];
  let playoffMatches = [];
