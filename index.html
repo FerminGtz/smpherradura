@@ -357,7 +357,7 @@
  <div class="card">
  <h2 id="resTitulo">Historial de Partidos</h2>
  <div id="resetFilterContainer" style="display:none; margin-bottom: 15px;">
- <button onclick="mostrarTodosPartidosJugador()" class="resultBtn" style="background: #2e86de;"> Ver todos los partidos</button>
+ <button onclick="regresarAOrigen()" class="resultBtn" style="background: #2e86de;"> Regresar a jugadores</button>
  </div>
  
  <button id="btnAgregarRes" class="resultBtn" onclick="toggleRadar()"> Capturar Resultado</button>
@@ -444,7 +444,6 @@ let datosJugadores = [];
 let origenFiltro = 'leaderboard';
 let jugadorFiltradoActual = null;
 let programacionGlobal = []; // Calendario oficial para la vista individual de todos los encuentros.
-let vistaCalendarioJugador = false; 
 
 // --- CONTROL DE ACCESO E INSCRIPCIÓN ---
 function mostrarRegistro() {
@@ -1107,41 +1106,21 @@ function renderTableResultados(dataArray) {
 function filtrarPorJugador(nombre, desdeDonde) {
  origenFiltro = desdeDonde;
  jugadorFiltradoActual = nombre;
- vistaCalendarioJugador = false;
- const seleccionado = normalizarNombre(nombre);
- const filtrados = allMatches.filter(m =>
-  normalizarNombre(m.NombreRes) === seleccionado ||
-  normalizarNombre(m.Perdedor) === seleccionado
- );
- document.getElementById('resTitulo').innerText = "Resultados de: " + nombre;
  document.getElementById('resetFilterContainer').style.display = 'block';
- document.querySelector('#resetFilterContainer button').textContent = 'Ver todos los partidos';
+ document.querySelector('#resetFilterContainer button').textContent =
+  desdeDonde === 'jugadores' ? 'Regresar a jugadores' : 'Regresar a clasificación';
  document.getElementById('btnAgregarRes').style.display = 'none';
  document.getElementById('radarContainer').style.display = 'none';
- renderTableResultados(filtrados);
+ mostrarTodosPartidosJugador();
  showTab('resultados');
 }
 
-// Muestra los cinco juegos programados del jugador elegido desde Jugadores o Leaderboard.
-// El mismo botón permite volver a la vista de resultados individuales.
+// Despliega directamente el calendario del jugador (partidos jugados y pendientes).
+// Reutiliza Programacion y Resultados sin modificar ninguno de sus datos.
 function mostrarTodosPartidosJugador() {
  if (!jugadorFiltradoActual) return;
- const boton = document.querySelector('#resetFilterContainer button');
  const nombre = jugadorFiltradoActual;
  const nombreNormalizado = normalizarNombre(nombre);
-
- if (vistaCalendarioJugador) {
-  vistaCalendarioJugador = false;
-  const filtrados = allMatches.filter(m =>
-   normalizarNombre(m.NombreRes) === nombreNormalizado ||
-   normalizarNombre(m.Perdedor) === nombreNormalizado
-  );
-  document.getElementById('resTitulo').innerText = 'Resultados de: ' + nombre;
-  boton.textContent = 'Ver todos los partidos';
-  renderTableResultados(filtrados);
-  return;
- }
-
  const ordenMes = {noviembre:0, diciembre:1, enero:2, febrero:3, marzo:4};
  const juegos = programacionGlobal.map(p => ({
   mes: String(p.mes || p.Mes || '').trim(),
@@ -1177,18 +1156,14 @@ function mostrarTodosPartidosJugador() {
  if (juegos.length === 0) {
   html = '<p>No se encontró programación para este jugador.</p>';
  }
- document.getElementById('resTitulo').innerText = 'Todos los partidos de: ' + nombre;
+ document.getElementById('resTitulo').innerText = 'Partidos de: ' + nombre;
  document.getElementById('resultsContainer').innerHTML = html;
- boton.textContent = 'Ver resultados del jugador';
- vistaCalendarioJugador = true;
 }
 
 function regresarAOrigen() {
  jugadorFiltradoActual = null;
- vistaCalendarioJugador = false;
- document.getElementById('resTitulo').innerText = "Historial de Partidos";
+ document.getElementById('resTitulo').innerText = 'Historial de Partidos';
  document.getElementById('resetFilterContainer').style.display = 'none';
- document.querySelector('#resetFilterContainer button').textContent = 'Ver todos los partidos';
  document.getElementById('btnAgregarRes').style.display = 'inline-block';
  document.getElementById('btnAgregarRes').innerHTML = ' Capturar Resultado';
  document.getElementById('btnAgregarRes').style.background = '#145a32';
