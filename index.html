@@ -1327,11 +1327,11 @@ function abrirActualizacionGHINSMP(rival,a,b,solicitud){
  const nonce=crypto.randomUUID();
  const url=new URL(document.querySelector('#radarContainer iframe').dataset.src);
  Object.entries({accion:'actualizarGHIN',a:claveGhinSMP(a),b:claveGhinSMP(b),nonce,origen:location.origin}).forEach(([k,v])=>url.searchParams.set(k,v));
- const frame=document.createElement('iframe');frame.title='Verificación de correo para GHIN';frame.style.cssText='width:100%;height:245px;border:1px solid #ccc;border-radius:8px;margin:10px 0;background:white';frame.src=url.href;marco.replaceChildren(frame);btn.disabled=true;
+ const frame=document.createElement('iframe');frame.title='Actualización GHIN';frame.style.cssText='width:100%;height:65px;border:1px solid #ccc;border-radius:8px;margin:10px 0;background:white';frame.src=url.href;marco.replaceChildren(frame);btn.disabled=true;
  const cancelar=document.createElement('button');cancelar.className='ventaja-btn';cancelar.textContent='Cancelar actualización';marco.appendChild(cancelar);
  const limpiar=()=>{if(ghinMensajeSMP)window.removeEventListener('message',ghinMensajeSMP);ghinMensajeSMP=null;marco.replaceChildren();btn.disabled=false;};
  cancelar.onclick=limpiar;
- ghinMensajeSMP=e=>{if(!/^https:\/\/([a-z0-9-]+\.)*googleusercontent\.com$/i.test(e.origin)&&e.origin!=='https://script.google.com')return;if(e.data?.tipo!=='smp-ghin-fin'||e.data.nonce!==nonce)return;limpiar();if(solicitud===ventSolicitudSMP)consultarVentajasSMP(rival,e.data.ok?(e.data.recientes?'Hándicaps verificados recientemente.':'Consulta GHIN completada.'):'Actualización parcial o fallida. Revisa las horas de ambos jugadores.',Array.isArray(e.data.jugadores)?e.data.jugadores:[]);};window.addEventListener('message',ghinMensajeSMP);
+ ghinMensajeSMP=e=>{if(!/^https:\/\/([a-z0-9-]+\.)*googleusercontent\.com$/i.test(e.origin)&&e.origin!=='https://script.google.com')return;if(e.data?.tipo!=='smp-ghin-fin'||e.data.nonce!==nonce)return;limpiar();if(solicitud===ventSolicitudSMP)consultarVentajasSMP(rival,e.data.ok?(e.data.recientes?'Hándicaps verificados recientemente.':'Consulta GHIN completada.'):(e.data.mensaje||'Actualización parcial o fallida. Revisa las horas de ambos jugadores.'),Array.isArray(e.data.jugadores)?e.data.jugadores:[]);};window.addEventListener('message',ghinMensajeSMP);
 }
 
 function mostrarMisJuegos(programacion) {
