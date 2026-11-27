@@ -193,6 +193,21 @@
    #lunaEstado {color:#b9d0c0;}
  }
 
+
+ .ventaja-btn{width:100%;margin-top:12px;padding:11px;border:1px solid #145a32;border-radius:8px;background:transparent;color:inherit;font-weight:bold;cursor:pointer;font-size:14px;}
+ #ventajasPanel{margin-top:16px;}
+ .vent-header{background:#0b3d2e;color:white;border-radius:12px;padding:18px;text-align:center;margin:12px 0;}
+ .vent-players{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+ .vent-person{border:1px solid #9bb5a5;border-radius:10px;text-align:center;padding:12px 6px;overflow-wrap:anywhere;}
+ .vent-big{font-size:28px;font-weight:bold;margin:5px 0;}
+ .vent-summary{border:1px solid #9bb5a5;border-radius:10px;text-align:center;padding:12px;margin:12px 0;}
+ .vent-grid{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:3px;margin:8px 0 16px;}
+ .vent-hole{border:1px solid #a5b5aa;border-radius:6px;text-align:center;padding:6px 0;font-size:12px;min-width:0;}
+ .vent-hole strong{display:block;font-size:16px;margin:3px 0;}
+ .vent-hole.activo{background:#145a32;color:white;border-color:#145a32;}
+ .vent-note{font-size:12px;opacity:.85;line-height:1.5;margin:10px 0;}
+ @media(max-width:400px){.vent-hole{font-size:10px}.vent-hole strong{font-size:14px}#misjuegos .card{padding:15px 9px;}}
+
 </style>
 </head>
 <body>
@@ -333,6 +348,7 @@
  <h2>Mis Juegos</h2>
  <p id="misJuegosIntro" style="font-size:15px; margin-bottom:10px; opacity:0.8;">Cargando tu programación...</p>
  <div id="misJuegosContainer">Cargando juegos...</div>
+ <div id="ventajasPanel" hidden></div>
  </div>
 </section>
 
@@ -893,6 +909,7 @@ async function enviarConsultaLunaV6(evento) {
 }
 
 function showTab(tabId){
+ cerrarVentajasSMP();
  document.querySelectorAll('.tab').forEach(t => t.style.display = 'none');
  document.querySelectorAll('#mainNav a').forEach(a => a.classList.remove('active-tab'));
  document.getElementById(tabId).style.display = 'block';
@@ -1217,6 +1234,88 @@ function enlaceWhatsAppJugador(nombre) {
  return `<a href="https://wa.me/${numeroWhatsApp}" target="_blank" rel="noopener noreferrer" title="Abrir chat de WhatsApp con ${nombre}">${nombre}</a>`;
 }
 
+
+// Calculador de ventajas: solo lectura, sin modificar resultados ni Apps Script.
+let ventSolicitudSMP = 0;
+function cerrarVentajasSMP(){
+ ++ventSolicitudSMP;
+ const panel=document.getElementById('ventajasPanel');
+ if(panel){panel.hidden=true;panel.innerHTML='';}
+ const lista=document.getElementById('misJuegosContainer');
+ if(lista)lista.hidden=false;
+ const intro=document.getElementById('misJuegosIntro');
+ if(intro)intro.hidden=false;
+}
+function numeroVentSMP(v){
+ const t=String(v??'').trim().replace(',','.');
+ return /^[+-]?\d+(?:\.\d+)?$/.test(t)?Number(t):NaN;
+}
+function redondearVentSMP(n){return Math.sign(n)*Math.round(Math.abs(n)+1e-10);}
+function hdcpVentSMP(ch, porcentaje){return redondearVentSMP(Math.min(23,ch)*porcentaje);}
+async function leerRangoVentSMP(hoja,rango,signal){
+ const url=`${baseGviz}&sheet=${encodeURIComponent(hoja)}&range=${encodeURIComponent(rango)}&t=${Date.now()}`;
+ const response=await fetch(url,{cache:'no-store',signal});
+ if(!response.ok)throw Error('No se pudo leer '+hoja);
+ const t=await response.text();
+ const j=JSON.parse(t.slice(t.indexOf('{'),t.lastIndexOf('}')+1));
+ if(j.status!=='ok'||!j.table)throw Error('No se pudo leer '+hoja);
+ return j.table.rows.map(r=>r.c.map(c=>c?{v:c.v,f:c.f??c.v}: {v:null,f:''}));
+}
+async function consultarVentajasSMP(rival){
+ const solicitud=++ventSolicitudSMP;
+ const panel=document.getElementById('ventajasPanel');
+ const lista=document.getElementById('misJuegosContainer');
+ const intro=document.getElementById('misJuegosIntro');
+ lista.hidden=true;intro.hidden=true;panel.hidden=false;
+ const volver='<button type="button" class="ventaja-btn" onclick="cerrarVentajasSMP()">← Regresar a Mis Juegos</button>';
+ panel.innerHTML=volver+'<p role="status">Consultando hándicaps y ventajas…</p>';
+ panel.scrollIntoView({block:'start'});
+ const ctrl=new AbortController(), timer=setTimeout(()=>ctrl.abort(),12000);
+ const esc=escaparJugadoresSMP;
+ try{
+  const propio=datosJugadores.filter(p=>claveGhinSMP(p.GHIN)===claveGhinSMP(localStorage.getItem('smp_ghin')));
+  const otro=datosJugadores.filter(p=>normalizarNombre(p.Nombre)===normalizarNombre(rival));
+  if(propio.length!==1||otro.length!==1||!claveGhinSMP(propio[0].GHIN)||!claveGhinSMP(otro[0].GHIN)||claveGhinSMP(propio[0].GHIN)===claveGhinSMP(otro[0].GHIN))throw Error('No se pudo identificar a ambos jugadores.');
+  const [hd,conf,hoyos]=await Promise.all([leerRangoVentSMP('HDCP_Diario','A:G',ctrl.signal),leerRangoVentSMP('Config_Campo','A:E',ctrl.signal),leerRangoVentSMP('Config_Hoyos','A:C',ctrl.signal)]);
+  const dor=conf.filter(r=>String(r[0]?.v??'').trim().toLowerCase()==='doradas');
+  if(dor.length!==1)throw Error('Revisa la configuración de Doradas.');
+  let pct=numeroVentSMP(dor[0][4]?.v);if(pct===80)pct=.8;
+  if(Math.abs(pct-.8)>1e-9||!Number.isFinite(pct))throw Error('El porcentaje de Doradas debe ser 80%.');
+  const rating=numeroVentSMP(dor[0][1]?.v),slope=numeroVentSMP(dor[0][2]?.v),par=numeroVentSMP(dor[0][3]?.v);
+  if(!Number.isFinite(rating)||!Number.isFinite(slope)||slope<=0||!Number.isFinite(par))throw Error('Configuración de Doradas incompleta.');
+  const campo=hoyos.filter(r=>String(r[0]?.v??'').trim()!=='').map(r=>({h:numeroVentSMP(r[0]?.v),par:numeroVentSMP(r[1]?.v),v:numeroVentSMP(r[2]?.v)}));
+  if(campo.length!==18||new Set(campo.map(x=>x.h)).size!==18||new Set(campo.map(x=>x.v)).size!==18||campo.some(x=>!Number.isInteger(x.h)||x.h<1||x.h>18||!Number.isInteger(x.v)||x.v<1||x.v>18||!Number.isInteger(x.par)||x.par<3||x.par>6)||campo.reduce((a,x)=>a+x.par,0)!==par)throw Error('Config_Hoyos debe contener 18 hoyos con pares e índices de ventaja válidos, sin filas de totales.');
+  campo.sort((a,b)=>a.h-b.h);
+  const jugadores=[propio[0],otro[0]].map(p=>{
+   const filas=hd.filter(r=>claveGhinSMP(r[0]?.v)===claveGhinSMP(p.GHIN));
+   if(filas.length!==1)throw Error('No hay un registro único de hándicap para '+p.Nombre+'.');
+   const r=filas[0], hiTexto=String(r[3]?.f??'').trim(), hiNum=numeroVentSMP(hiTexto);
+   if(!Number.isFinite(hiNum))throw Error('Handicap Index no disponible para '+p.Nombre+'.');
+   const hi=hiTexto.startsWith('+')?-Math.abs(hiNum):hiNum;
+   const ch=redondearVentSMP(hi*slope/113+rating-par);
+   const fecha=String(r[4]?.f??'').trim();
+   if(!fecha)throw Error('Falta fecha de actualización para '+p.Nombre+'.');
+   return {nombre:p.Nombre,hi:hiTexto,ch,ph:hdcpVentSMP(ch,pct),fecha};
+  });
+  const [a,b]=jugadores,dif=Math.abs(a.ph-b.ph);
+  if(solicitud!==ventSolicitudSMP)return;
+  const receptor=a.ph>b.ph?a:b;
+  const golpes=x=>Math.floor(dif/18)+(x.v<=dif%18?1:0);
+  const listaHoyos=campo.filter(x=>golpes(x)>0).map(x=>`${x.h}${golpes(x)>1?' (+'+golpes(x)+')':''}`).join(', ');
+  const fechaHoy=new Intl.DateTimeFormat('en-GB',{timeZone:'America/Monterrey',day:'2-digit',month:'2-digit',year:'numeric'}).format(new Date());
+  const fechaNormal=t=>t.replace(/-/g,'/');
+  const anterior=jugadores.some(j=>!fechaNormal(j.fecha).startsWith(fechaHoy));
+  const mostrarH=n=>n<0?'+'+Math.abs(n):String(n);
+  panel.innerHTML=volver+`<div class="vent-header"><strong style="font-size:21px">Calculador de ventajas</strong><div>La Herradura · Doradas</div></div>
+  <div class="vent-players">${jugadores.map(j=>`<div class="vent-person"><strong>${esc(j.nombre)}</strong><div class="vent-note">Index: ${esc(j.hi)}</div><div class="vent-big">${mostrarH(j.ph)}</div><div>HDCP SMP 80%</div></div>`).join('')}</div>
+  <div class="vent-summary"><div class="vent-big">${dif} ${dif===1?'ventaja':'ventajas'}</div><strong>${dif===0?'Juegan sin ventajas':(receptor===a?'Recibes '+dif+' golpe(s) de '+esc(b.nombre):'Otorgas '+dif+' golpe(s) a '+esc(b.nombre))}</strong></div>
+  ${[0,9].map(i=>`<strong>${i===0?'Primera vuelta':'Segunda vuelta'}</strong><div class="vent-grid">${campo.slice(i,i+9).map(x=>`<div class="vent-hole ${golpes(x)?'activo':''}"><span>Hoyo</span><strong>${x.h}</strong><span>V${x.v}</span><strong>${golpes(x)?'+'+golpes(x):'—'}</strong></div>`).join('')}</div>`).join('')}
+  ${dif?`<div class="vent-summary"><strong>Hoyos con ventaja para ${esc(receptor.nombre)}</strong><div class="vent-big">${listaHoyos}</div></div>`:''}
+  <div class="vent-note">Actualización de hándicaps:<br>${jugadores.map(j=>esc(j.nombre)+': '+esc(j.fecha)).join('<br>')}${anterior?'<br><strong>Verifica que los hándicaps correspondan al día del match.</strong>':''}<br>Tope SMP: 23 antes del 80%.</div>`+volver;
+ }catch(e){if(solicitud===ventSolicitudSMP)panel.innerHTML=volver+`<p role="alert">${esc(e.name==='AbortError'?'La consulta tardó demasiado. Intenta nuevamente.':e.message)}</p>`;}
+ finally{clearTimeout(timer);}
+}
+
 function mostrarMisJuegos(programacion) {
  const contenedor = document.getElementById("misJuegosContainer");
  const intro = document.getElementById("misJuegosIntro");
@@ -1294,12 +1393,13 @@ function mostrarMisJuegos(programacion) {
  html += "<div class='empty-games'>No tienes juegos pendientes.</div>";
  } else {
  html += "<div class='game-list'>";
- pendientes.forEach(p => {
+ pendientes.forEach((p, idx) => {
  html += `
  <div class="game-card">
  <div class="game-month">${p.Mes || "Mes por definir"}</div>
  <div class="game-rival">${enlaceWhatsAppJugador(p.Rival)}</div>
  <div class="game-status"><strong>Pendiente</strong></div>
+ <button type="button" class="ventaja-btn" data-ventaja-idx="${idx}">Consultar ventajas</button>
  </div>`;
  });
  html += "</div>";
@@ -1328,6 +1428,10 @@ function mostrarMisJuegos(programacion) {
  }
 
  contenedor.innerHTML = html;
+ cerrarVentajasSMP();
+ contenedor.querySelectorAll('[data-ventaja-idx]').forEach(btn => {
+  btn.addEventListener('click', () => consultarVentajasSMP(pendientes[Number(btn.dataset.ventajaIdx)].Rival));
+ });
 }
 
 function mostrarPlayoffs(datos) {
