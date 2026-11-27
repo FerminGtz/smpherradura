@@ -1238,6 +1238,7 @@ function enlaceWhatsAppJugador(nombre) {
 // Calculador de ventajas: solo lectura, sin modificar resultados ni Apps Script.
 let ventSolicitudSMP = 0;
 function cerrarVentajasSMP(){
+ if(ghinMensajeSMP){window.removeEventListener("message",ghinMensajeSMP);ghinMensajeSMP=null;}
  ++ventSolicitudSMP;
  const panel=document.getElementById('ventajasPanel');
  if(panel){panel.hidden=true;panel.innerHTML='';}
@@ -1261,7 +1262,7 @@ async function leerRangoVentSMP(hoja,rango,signal){
  if(j.status!=='ok'||!j.table)throw Error('No se pudo leer '+hoja);
  return j.table.rows.map(r=>r.c.map(c=>c?{v:c.v,f:c.f??c.v}: {v:null,f:''}));
 }
-async function consultarVentajasSMP(rival){
+async function consultarVentajasSMP(rival, avisoGHIN="", actualizados=[]){
  const solicitud=++ventSolicitudSMP;
  const panel=document.getElementById('ventajasPanel');
  const lista=document.getElementById('misJuegosContainer');
@@ -1289,11 +1290,11 @@ async function consultarVentajasSMP(rival){
   const jugadores=[propio[0],otro[0]].map(p=>{
    const filas=hd.filter(r=>claveGhinSMP(r[0]?.v)===claveGhinSMP(p.GHIN));
    if(filas.length!==1)throw Error('No hay un registro único de hándicap para '+p.Nombre+'.');
-   const r=filas[0], hiTexto=String(r[3]?.f??'').trim(), hiNum=numeroVentSMP(hiTexto);
+   const r=filas[0], dato=actualizados.find(j=>claveGhinSMP(j.ghin)===claveGhinSMP(p.GHIN)&&['actualizado','reciente'].includes(j.estado)), hiTexto=String(dato?.handicapIndex??r[3]?.f??'').trim(), hiNum=numeroVentSMP(hiTexto);
    if(!Number.isFinite(hiNum))throw Error('Handicap Index no disponible para '+p.Nombre+'.');
    const hi=hiTexto.startsWith('+')?-Math.abs(hiNum):hiNum;
    const ch=redondearVentSMP(hi*slope/113+rating-par);
-   const fecha=String(r[4]?.f??'').trim();
+   const fecha=String(dato?.actualizacion??r[4]?.f??'').trim();
    if(!fecha)throw Error('Falta fecha de actualización para '+p.Nombre+'.');
    return {nombre:p.Nombre,hi:hiTexto,ch,ph:hdcpVentSMP(ch,pct),fecha};
   });
@@ -1311,9 +1312,26 @@ async function consultarVentajasSMP(rival){
   <div class="vent-summary"><div class="vent-big">${dif} ${dif===1?'ventaja':'ventajas'}</div><strong>${dif===0?'Juegan sin ventajas':(receptor===a?'Recibes '+dif+' golpe(s) de '+esc(b.nombre):'Otorgas '+dif+' golpe(s) a '+esc(b.nombre))}</strong></div>
   ${[0,9].map(i=>`<strong>${i===0?'Primera vuelta':'Segunda vuelta'}</strong><div class="vent-grid">${campo.slice(i,i+9).map(x=>`<div class="vent-hole ${golpes(x)?'activo':''}"><span>Hoyo</span><strong>${x.h}</strong><span>V${x.v}</span><strong>${golpes(x)?'+'+golpes(x):'—'}</strong></div>`).join('')}</div>`).join('')}
   ${dif?`<div class="vent-summary"><strong>Hoyos con ventaja para ${esc(receptor.nombre)}</strong><div class="vent-big">${listaHoyos}</div></div>`:''}
-  <div class="vent-note">Actualización de hándicaps:<br>${jugadores.map(j=>esc(j.nombre)+': '+esc(j.fecha)).join('<br>')}${anterior?'<br><strong>Verifica que los hándicaps correspondan al día del match.</strong>':''}<br>Tope SMP: 23 antes del 80%.</div>`+volver;
+  <div class="vent-note">Actualización de hándicaps:<br>${jugadores.map(j=>esc(j.nombre)+': '+esc(j.fecha)).join('<br>')}${anterior?'<br><strong>Verifica que los hándicaps correspondan al día del match.</strong>':''}<br>Tope SMP: 23 antes del 80%.</div>`+`<button type="button" class="ventaja-btn" id="actualizarGHINBtn">Actualizar desde GHIN</button><div id="ghinEstado" role="status">${esc(avisoGHIN)}</div><div id="ghinMarco"></div>`+volver;
+  document.getElementById('actualizarGHINBtn').onclick=()=>abrirActualizacionGHINSMP(rival,propio[0].GHIN,otro[0].GHIN,solicitud);
  }catch(e){if(solicitud===ventSolicitudSMP)panel.innerHTML=volver+`<p role="alert">${esc(e.name==='AbortError'?'La consulta tardó demasiado. Intenta nuevamente.':e.message)}</p>`;}
  finally{clearTimeout(timer);}
+}
+
+
+let ghinMensajeSMP=null;
+function abrirActualizacionGHINSMP(rival,a,b,solicitud){
+ const btn=document.getElementById('actualizarGHINBtn'), marco=document.getElementById('ghinMarco');
+ if(!btn||!marco)return;
+ if(ghinMensajeSMP)window.removeEventListener('message',ghinMensajeSMP);
+ const nonce=crypto.randomUUID();
+ const url=new URL(document.querySelector('#radarContainer iframe').dataset.src);
+ Object.entries({accion:'actualizarGHIN',a:claveGhinSMP(a),b:claveGhinSMP(b),nonce,origen:location.origin}).forEach(([k,v])=>url.searchParams.set(k,v));
+ const frame=document.createElement('iframe');frame.title='Verificación de correo para GHIN';frame.style.cssText='width:100%;height:245px;border:1px solid #ccc;border-radius:8px;margin:10px 0;background:white';frame.src=url.href;marco.replaceChildren(frame);btn.disabled=true;
+ const cancelar=document.createElement('button');cancelar.className='ventaja-btn';cancelar.textContent='Cancelar actualización';marco.appendChild(cancelar);
+ const limpiar=()=>{if(ghinMensajeSMP)window.removeEventListener('message',ghinMensajeSMP);ghinMensajeSMP=null;marco.replaceChildren();btn.disabled=false;};
+ cancelar.onclick=limpiar;
+ ghinMensajeSMP=e=>{if(!/^https:\/\/([a-z0-9-]+\.)*googleusercontent\.com$/i.test(e.origin)&&e.origin!=='https://script.google.com')return;if(e.data?.tipo!=='smp-ghin-fin'||e.data.nonce!==nonce)return;limpiar();if(solicitud===ventSolicitudSMP)consultarVentajasSMP(rival,e.data.ok?(e.data.recientes?'Hándicaps verificados recientemente.':'Consulta GHIN completada.'):'Actualización parcial o fallida. Revisa las horas de ambos jugadores.',Array.isArray(e.data.jugadores)?e.data.jugadores:[]);};window.addEventListener('message',ghinMensajeSMP);
 }
 
 function mostrarMisJuegos(programacion) {
