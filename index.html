@@ -1033,9 +1033,9 @@ async function toggleRadarPlayoffs() {
  }
 }
 
-async function fetchSheetJSON(sheetName) {
+async function fetchSheetJSON(sheetName, signal) {
  // MAGIA NO-STORE PARA DATOS FRESCOS
- const response = await fetch(`${baseGviz}&sheet=${sheetName}&t=${new Date().getTime()}`, { cache: 'no-store' });
+ const response = await fetch(`${baseGviz}&sheet=${sheetName}&t=${new Date().getTime()}`, { cache: 'no-store', signal });
  const text = await response.text();
  
  if (text.includes('"status":"error"')) {
@@ -1508,6 +1508,21 @@ function mostrarNoticias(datos) {
   contenedor.innerHTML = html;
 }
  
+// Hándicaps diarios: lectura independiente, sin consultar GHIN desde el portal.
+function claveGhinSMP(valor) {
+ const texto = String(valor ?? '').trim().replace(/[\s,]/g, '');
+ return /^\d+$/.test(texto) ? texto.replace(/^0+(?=\d)/, '') : '';
+}
+function handicapVisibleSMP(valor, decimales) {
+ const texto = String(valor ?? '').trim().replace(',', '.');
+ if (!/^[+-]?\d+(?:\.\d+)?$/.test(texto)) return '—';
+ const numero = Number(texto);
+ if (!Number.isFinite(numero)) return '—';
+ return (texto.startsWith('+') ? '+' : '') + numero.toFixed(decimales);
+}
+function escaparJugadoresSMP(valor) {
+ return String(valor ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 function renderizarJugadores() {
  const contenedor = document.getElementById("playersContainer");
  if (!contenedor) return;
@@ -1528,11 +1543,19 @@ function renderizarJugadores() {
   : (compararGrupo(a,b) || compararNombre(a,b))
  );
 
- let html = "<div class='table-wrapper'><table><tr><th>Jugador</th><th>Grupo</th><th>GHIN</th></tr>";
- pData.forEach(p => {
-  html += `<tr><td class="clickable-name" onclick="filtrarPorJugador('${p.Nombre}', 'jugadores')" style="text-align:left;">${p.Nombre}</td><td>${p.Grupo || ''}</td><td>${p.GHIN || ''}</td></tr>`;
+ const fechas = [...new Set(pData.filter(p => p.HDCP80 !== '—' && p.ActualizacionHDCP).map(p => p.ActualizacionHDCP))];
+ const disponibles = pData.filter(p => p.HDCP80 !== '—').length;
+ let aviso = disponibles === 0 ? 'Hándicaps no disponibles por el momento.' :
+  (fechas.length === 1 ? 'Actualización GHIN: ' + fechas[0] : 'Actualización GHIN: consultar fecha por jugador.');
+ aviso += ` · ${disponibles}/${pData.length} hándicaps disponibles`;
+ let html = `<p style="font-size:12px;opacity:.8;">${escaparJugadoresSMP(aviso)}</p><div class="table-wrapper"><table><tr><th>Jugador</th><th>Grupo</th><th>GHIN</th><th>Index</th><th>HDCP 80%</th></tr>`;
+ pData.forEach((p,i) => {
+  html += `<tr><td class="clickable-name" data-jugador-idx="${i}" style="text-align:left;">${escaparJugadoresSMP(p.Nombre)}</td><td>${escaparJugadoresSMP(p.Grupo || '')}</td><td>${escaparJugadoresSMP(p.GHIN || '')}</td><td>${p.HandicapIndex ?? '—'}</td><td title="${escaparJugadoresSMP(p.ActualizacionHDCP || 'Sin actualización')}" style="font-weight:bold;">${p.HDCP80 ?? '—'}</td></tr>`;
  });
  contenedor.innerHTML = html + "</table></div>";
+ contenedor.querySelectorAll('[data-jugador-idx]').forEach(celda => {
+  celda.addEventListener('click', () => filtrarPorJugador(pData[Number(celda.dataset.jugadorIdx)].Nombre, 'jugadores'));
+ });
 }
 
 async function inicializar() {
@@ -1684,7 +1707,33 @@ if (jugadorOficial) {
  }
  document.getElementById("groupsContainer").innerHTML = lbHtml;
 
+ // La hoja HDCP_Diario pertenece al mismo archivo oficial.
+ // Un fallo de lectura no debe impedir que funcionen Jugadores ni Mis Juegos.
+ const controladorHDCP = new AbortController();
+ const tiempoHDCP = setTimeout(() => controladorHDCP.abort(), 8000);
+ const rawHandicaps = await fetchSheetJSON("HDCP_Diario", controladorHDCP.signal).catch(error => {
+  console.warn("No se pudieron leer los hándicaps diarios.", error);
+  return [];
+ }).finally(() => clearTimeout(tiempoHDCP));
+ const handicapsPorGhin = new Map();
+ const ghinDuplicados = new Set();
+ rawHandicaps.forEach(h => {
+  const clave = claveGhinSMP(h.GHIN_ID ?? h.ghin_id);
+  if (!clave || ghinDuplicados.has(clave)) return;
+  if (handicapsPorGhin.has(clave)) {
+   handicapsPorGhin.delete(clave);
+   ghinDuplicados.add(clave);
+   return;
+  }
+  const index = handicapVisibleSMP(h['Handicap Index'] ?? h.handicapindex, 1);
+  handicapsPorGhin.set(clave, {
+   HandicapIndex: index,
+   HDCP80: index === '—' ? '—' : handicapVisibleSMP(h.Doradas ?? h.doradas, 0),
+   ActualizacionHDCP: String(h['Actualización'] ?? h['actualización'] ?? h.Actualizacion ?? h.actualizacion ?? '').trim()
+  });
+ });
  datosJugadores = rawPlayers.map(p => ({
+ ... (handicapsPorGhin.get(claveGhinSMP(p.ghin ?? p.GHIN)) || {HandicapIndex:'—', HDCP80:'—', ActualizacionHDCP:''}),
  Nombre: p.nombre || p.Nombre || "",
  Grupo: p.grupo || p.Grupo || "",
  GHIN: p.ghin || p.GHIN || "",
