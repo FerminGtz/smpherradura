@@ -231,6 +231,19 @@
    #mainNav:has(#nav-playoffs[style*="display: block"]), #mainNav:has(#nav-playoffs[style*="display:block"]) {grid-template-columns:repeat(3,minmax(0,1fr));}
  }
 
+
+ /* Escritorio: encabezado compacto; menú original de texto sin iconos. */
+ @media (min-width:701px) {
+   header.smp-header {padding:14px 18px;}
+   .smp-header-inner {gap:24px;max-width:850px;}
+   .smp-header-logo {width:105px;height:105px;}
+   .smp-header h1 {font-family:Arial,sans-serif;font-size:clamp(28px,3vw,40px);line-height:1.12;font-weight:700;}
+   .smp-header-club {font-size:clamp(22px,2.1vw,30px);font-weight:400;}
+   .smp-mobile-season {display:inline;margin-left:16px;color:#e5c77b;font-size:clamp(16px,1.5vw,23px);font-weight:400;white-space:nowrap;}
+   .smp-header-season {display:none;}
+   .smp-header-tagline {font-family:Arial,sans-serif;font-size:clamp(15px,1.45vw,19px);margin:7px 0 0;}
+ }
+
 </style>
 </head>
 <body>
