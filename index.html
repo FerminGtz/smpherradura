@@ -208,6 +208,29 @@
  .vent-note{font-size:12px;opacity:.85;line-height:1.5;margin:10px 0;}
  @media(max-width:400px){.vent-hole{font-size:10px}.vent-hole strong{font-size:14px}#misjuegos .card{padding:15px 9px;}}
 
+
+ /* Encabezado y navegación compactos: únicamente pantallas de hasta 700px. */
+ .smp-mobile-season, #mainNav .smp-nav-icon, #mainNav .smp-mobile-label {display:none;}
+ @media (max-width:700px) {
+   header.smp-header {padding:8px 10px;}
+   .smp-header-inner {gap:9px;max-width:420px;}
+   .smp-header-logo {width:54px;height:54px;}
+   .smp-header h1 {font-family:Arial,sans-serif;font-size:clamp(17px,5.1vw,23px);line-height:1.14;font-weight:700;}
+   .smp-header-club {display:block;font-size:clamp(13px,3.9vw,16px);font-weight:400;white-space:nowrap;margin-top:4px;}
+   .smp-header-club-break,.smp-header-season,.smp-header-tagline {display:none;}
+   .smp-mobile-season {display:inline;margin-left:10px;color:#e5c77b;font-size:clamp(11px,3.2vw,13px);font-weight:400;}
+   #mainNav {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:3px;overflow:visible;justify-content:stretch;}
+   #mainNav a {min-width:0;box-sizing:border-box;padding:6px 1px 4px;min-height:53px;border-bottom:2px solid transparent;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:Arial,sans-serif;font-size:clamp(10px,3.1vw,13px);line-height:1.15;white-space:nowrap;border-radius:3px;}
+   #mainNav .smp-nav-icon {display:block;width:21px;height:21px;flex:none;}
+   #mainNav .smp-desktop-label {display:none;}
+   #mainNav .smp-mobile-label {display:inline;}
+   #mainNav a.active-tab {color:#e5c77b;background:#0b3d2e;border-bottom-color:#e5c77b;}
+   #mainNav a:hover {border-bottom-color:#e5c77b;}
+   /* La lógica original activa Playoffs mediante display:block en línea. */
+   #mainNav #nav-playoffs[style*="display: block"], #mainNav #nav-playoffs[style*="display:block"] {display:flex!important;}
+   #mainNav:has(#nav-playoffs[style*="display: block"]), #mainNav:has(#nav-playoffs[style*="display:block"]) {grid-template-columns:repeat(3,minmax(0,1fr));}
+ }
+
 </style>
 </head>
 <body>
@@ -288,7 +311,7 @@
  <div class="smp-header-inner">
   <img class="smp-header-logo" src="Senior_Match_Play_Logo_600px_Transparente.png" alt="Logotipo Senior Match Play La Herradura" onerror="this.style.display='none'">
   <div class="smp-header-text">
-   <h1>Senior Match Play<br>La Herradura</h1>
+   <h1>Senior Match Play<br class="smp-header-club-break"><span class="smp-header-club">La Herradura<span class="smp-mobile-season">2026–2027</span></span></h1>
    <p class="smp-header-season">2026–2027</p>
    <p class="smp-header-tagline">Convivencia, Competencia e Integración</p>
   </div>
@@ -296,15 +319,15 @@
 </header>
 
 <nav id="mainNav">
- <a onclick="showTab('leaderboard')" id="nav-leaderboard" class="active-tab">Leaderboard</a>
- <a onclick="showTab('playoffs')" id="nav-playoffs" style="display:none;">Playoffs </a>
- <a onclick="showTab('jugadores')" id="nav-jugadores">Jugadores</a>
- <a onclick="showTab('misjuegos')" id="nav-misjuegos">Mis Juegos</a>
- <a onclick="showTab('luna')" id="nav-luna">LUNA</a>
- <a onclick="mostrarResultadosGenerales()" id="nav-resultados">Resultados</a>
- <a onclick="showTab('noticias')" id="nav-noticias">Noticias </a>
- <a onclick="showTab('contacto')" id="nav-contacto">Contacto</a>
- <a onclick="showTab('bases')" id="nav-bases">Bases</a>
+ <a onclick="showTab('leaderboard')" id="nav-leaderboard" class="active-tab"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v6a5 5 0 0 1-10 0zM7 6H3v2a4 4 0 0 0 4 4M17 6h4v2a4 4 0 0 1-4 4"/></svg><span class="smp-desktop-label">Leaderboard</span><span class="smp-mobile-label">Posiciones</span></a>
+ <a onclick="showTab('playoffs')" id="nav-playoffs" style="display:none;"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6h6M18 3v6h-6M12 9v6M6 21v-6h12v6"/></svg><span class="smp-desktop-label">Playoffs </span><span class="smp-mobile-label">Playoffs</span></a>
+ <a onclick="showTab('jugadores')" id="nav-jugadores"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/><circle cx="9" cy="7" r="4"/></svg><span class="smp-desktop-label">Jugadores</span><span class="smp-mobile-label">Jugadores</span></a>
+ <a onclick="showTab('misjuegos')" id="nav-misjuegos"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h2M14 14h2M8 17h2"/></svg><span class="smp-desktop-label">Mis Juegos</span><span class="smp-mobile-label">Mis Juegos</span></a>
+ <a onclick="showTab('luna')" id="nav-luna"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg><span class="smp-desktop-label">LUNA</span><span class="smp-mobile-label">LUNA</span></a>
+ <a onclick="mostrarResultadosGenerales()" id="nav-resultados"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 10h6M9 14h6M9 18h6"/></svg><span class="smp-desktop-label">Resultados</span><span class="smp-mobile-label">Resultados</span></a>
+ <a onclick="showTab('noticias')" id="nav-noticias"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h4v4H7zM15 8h2M15 12h2M7 16h10"/></svg><span class="smp-desktop-label">Noticias </span><span class="smp-mobile-label">Noticias</span></a>
+ <a onclick="showTab('contacto')" id="nav-contacto"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.7 3a2 2 0 0 1-.6 2.1L8 10a16 16 0 0 0 6 6l1.2-1.2a2 2 0 0 1 2.1-.6l3 .7a2 2 0 0 1 1.7 2z"/></svg><span class="smp-desktop-label">Contacto</span><span class="smp-mobile-label">Contacto</span></a>
+ <a onclick="showTab('bases')" id="nav-bases"><svg class="smp-nav-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14M3 4h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5v14h-5a4 4 0 0 0-4 3 4 4 0 0 0-4-3H3z"/></svg><span class="smp-desktop-label">Bases</span><span class="smp-mobile-label">Bases</span></a>
 </nav>
 
 <section id="leaderboard" class="tab">
